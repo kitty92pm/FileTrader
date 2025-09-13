@@ -3,68 +3,61 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>File Trader — Adopt‑Style</title>
+  <title>File Trader — Adopt‑Style + Lobby</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
   <style>
     :root{
-      --ink:#111213; --text:#0f1020; --white:#fff;
-      --bg:#0e0a15; --bg2:#15142a;
+      --bg:#0e0a15; --bg2:#15142a; --ink:#f7f6f9;
       --pink:#ff78c8; --cyan:#6be7ff; --lime:#7DFF9F; --amber:#ffd17d; --red:#ff7d9c;
-      --stroke:rgba(255,255,255,.12);
-      --glass: rgba(255,255,255,.08);
-      --glass-strong: rgba(255,255,255,.16);
-      --radius: 18px; --slot: 88px;
-      --shadow: 0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      --stroke:rgba(255,255,255,.12); --glass:rgba(255,255,255,.08); --glass2:rgba(255,255,255,.14);
+      --radius:18px; --slot:96px; --shadow:0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color:#f7f6f9;
+    body{margin:0; color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
       background:
         radial-gradient(1200px 700px at 15% 10%, #281b36 0%, transparent 60%),
         radial-gradient(1100px 800px at 85% 15%, #183049 0%, transparent 60%),
         linear-gradient(160deg,var(--bg),var(--bg2));
     }
-    .container{max-width:1100px; margin:24px auto; padding:0 16px}
-
+    .container{max-width:1180px; margin:24px auto; padding:0 16px}
     header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px}
-    .brand{display:flex; gap:12px; align-items:center}
     .badge{background:linear-gradient(90deg,var(--pink),var(--cyan)); color:#12121a; font-weight:800; padding:10px 14px; border-radius:14px; box-shadow:var(--shadow)}
-    .badge span{opacity:.9}
-
-    .status{display:flex; align-items:center; gap:8px}
-    .dot{width:12px; height:12px; border-radius:999px; background:var(--red); box-shadow:0 0 0 6px rgba(255,125,156,.18); transition: all .3s ease}
+    .status{display:flex; align-items:center; gap:10px}
+    .pill{display:flex; gap:8px; align-items:center; border:1px solid var(--stroke); border-radius:12px; padding:8px 10px; background:var(--glass)}
+    .mono{font-family:ui-monospace,Consolas,Menlo,monospace}
+    .dot{width:12px; height:12px; border-radius:999px; background:var(--red); box-shadow:0 0 0 6px rgba(255,125,156,.18); transition:all .3s ease}
     .dot.good{background:var(--lime); box-shadow:0 0 0 8px rgba(125,255,159,.18)}
-    .hint{font-size:12px; opacity:.75}
+    .hint{font-size:12px; opacity:.8}
 
     .card{background:var(--glass); border:1px solid var(--stroke); border-radius:var(--radius); backdrop-filter: blur(12px); box-shadow:var(--shadow)}
     .panel{padding:16px}
 
-    .gate{display:grid; gap:12px; animation: pop .35s ease both}
-    .gate h1{margin:0; font-size:22px}
-    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-    input[type=text]{background:rgba(255,255,255,.09); border:1px solid var(--stroke); border-radius:12px; padding:10px 12px; color:#fff; outline:none; min-width:260px}
     button{cursor:pointer; border:1px solid var(--stroke); color:#101114; font-weight:800; padding:11px 16px; border-radius:14px; box-shadow:var(--shadow); transition:transform .12s ease, opacity .2s ease}
     button:hover{transform:translateY(-1px)}
     button.primary{background:linear-gradient(90deg,var(--pink),var(--cyan)); border:none}
     button.good{background:linear-gradient(90deg,#87f7a9,#b6ffcf); border:none}
     button.warn{background:linear-gradient(90deg,#ffd17d,#ffe9b6); border:none}
     button.ghost{background:transparent; color:#e8e8ee}
-    button:disabled{opacity:.5; cursor:not-allowed}
+    button:disabled{opacity:.55; cursor:not-allowed}
+    input[type=text]{background:rgba(255,255,255,.09); border:1px solid var(--stroke); border-radius:12px; padding:10px 12px; color:#fff; outline:none; min-width:260px}
 
     .grid{display:grid; grid-template-columns: 1fr 1fr; gap:16px}
-    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+    @media (max-width: 1040px){ .grid{grid-template-columns:1fr} }
 
     h2{margin:0 0 12px 0; font-size:16px; font-weight:800; letter-spacing:.3px}
 
-    /* Adopt‑style trade board */
-    .tradeboard{display:grid; grid-template-columns: 1fr 120px 1fr; gap:16px; align-items:center}
-    .col{background:var(--glass); border:1px solid var(--stroke); border-radius:18px; padding:14px}
+    /* Lobby / users */
+    .users{display:grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap:10px}
+    .user{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px; border:1px solid var(--stroke); border-radius:14px; background:var(--glass)}
+
+    /* Adopt-style board */
+    .boardWrap{display:grid; grid-template-columns: 1fr 120px 1fr; gap:16px; align-items:center; justify-items:center}
+    .col{width:100%; max-width:360px; background:var(--glass); border:1px solid var(--stroke); border-radius:18px; padding:14px}
     .col h3{margin:0 0 8px 0; font-size:14px; font-weight:800}
     .slots{display:grid; grid-template-columns: repeat(3, var(--slot)); grid-auto-rows: var(--slot); gap:10px; justify-content:center}
-    .slot{position:relative; border:2px dashed rgba(255,255,255,.22); border-radius:12px; display:grid; place-items:center; background:rgba(255,255,255,.04)}
+    .slot{position:relative; width:var(--slot); height:var(--slot); border:2px dashed rgba(255,255,255,.22); border-radius:12px; display:grid; place-items:center; background:rgba(255,255,255,.04)}
     .slot.fill{border-style:solid; border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.06)}
     .chip{max-width:calc(var(--slot) - 16px); text-align:center}
     .chip .name{font-size:12px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -72,252 +65,319 @@
     .x{position:absolute; top:6px; right:6px; background:rgba(0,0,0,.5); color:#fff; border:none; border-radius:8px; padding:4px 6px; font-size:11px}
 
     .middle{display:grid; gap:10px; justify-items:center}
-    .stage{font-size:11px; opacity:.8}
     .big{font-size:28px; font-weight:900; letter-spacing:.6px; background:linear-gradient(90deg,var(--pink),var(--cyan)); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .stage{font-size:12px; opacity:.8; text-align:center; max-width:160px}
     .checks{display:grid; gap:8px}
-    .checks button{width:140px}
-
-    .vault{background:var(--glass); border:1px solid var(--stroke); border-radius:18px; padding:14px}
-    .vault h3{margin:0 0 8px 0; font-size:14px; font-weight:800}
-    .drop{border:1px dashed var(--stroke); border-radius:14px; padding:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:rgba(255,255,255,.04)}
-    .list{display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:10px; margin-top:10px; max-height:280px; overflow:auto}
-    .cardfile{border:1px solid var(--stroke); border-radius:14px; padding:10px; background:rgba(255,255,255,.05); display:grid; gap:6px}
-    .cardfile .title{font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .cardfile .meta{font-size:12px; opacity:.75}
-
+    .checks button{width:160px}
     .progress{height:8px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden}
     .progress > div{height:100%; width:0%; background:linear-gradient(90deg,var(--pink),var(--cyan)); transition:width .2s ease}
 
-    .toast{position:fixed; right:16px; bottom:16px; display:grid; gap:8px; z-index:30}
-    .toast .t{background:var(--glass-strong); border:1px solid var(--stroke); padding:10px 12px; border-radius:12px; box-shadow:var(--shadow); animation: pop .3s ease both}
+    /* Vault & Inbox */
+    .vault{background:var(--glass); border:1px solid var(--stroke); border-radius:18px; padding:14px}
+    .drop{border:1px dashed var(--stroke); border-radius:14px; padding:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:rgba(255,255,255,.04)}
+    .list{display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:10px; margin-top:10px; max-height:240px; overflow:auto}
+    .cardfile{border:1px solid var(--stroke); border-radius:14px; padding:10px; background:rgba(255,255,255,.05); display:grid; gap:6px}
+    .title{font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .meta{font-size:12px; opacity:.75}
+
+    .inbox{display:grid; gap:8px; max-height:240px; overflow:auto}
+    .inItem{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:1px solid var(--stroke); border-radius:12px; background:rgba(255,255,255,.04)}
 
     .dim{opacity:.35; filter:saturate(.7); pointer-events:none}
-
-    @keyframes pop{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
+    .toast{position:fixed; right:16px; bottom:16px; display:grid; gap:8px; z-index:30}
+    .t{background:var(--glass2); border:1px solid var(--stroke); padding:10px 12px; border-radius:12px; box-shadow:var(--shadow)}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <div class="brand">
-        <div class="badge"><span>File Trader</span></div>
-      </div>
+      <div class="badge">File Trader</div>
       <div class="status">
-        <div class="pill" style="display:flex; gap:8px; align-items:center; border:1px solid var(--stroke); border-radius:12px; padding:8px 10px; background:var(--glass)">
-          <span class="hint">Your Temp ID</span>
-          <span id="myId" class="hint" style="font-family:ui-monospace,Consolas,Menlo,monospace">—</span>
-          <button id="copyId" class="ghost">Copy</button>
-        </div>
+        <div class="pill"><span class="hint">Temp ID</span> <span id="myId" class="mono">—</span> <button id="copyId" class="ghost">Copy</button></div>
         <div class="dot" id="statusDot"></div>
         <span id="statusText" class="hint">Not connected</span>
       </div>
     </header>
 
-    <!-- Gate -->
-    <section id="gate" class="card panel gate">
-      <h1>Connect to a Partner</h1>
-      <div class="row">
-        <input id="partnerId" type="text" placeholder="Partner Temp ID" />
-        <button id="btnConnect" class="primary">Connect</button>
-        <button id="btnDisconnect" class="ghost" disabled>Disconnect</button>
+    <!-- Lobby / Active users -->
+    <section class="card panel" id="lobby">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
+        <h2>Active Users</h2>
+        <div class="hint" id="usersCount">0 online</div>
       </div>
-      <div class="hint">Share your Temp ID with them. Trading unlocks when connected.</div>
+      <div id="users" class="users"></div>
+      <div id="usersEmpty" class="hint" style="text-align:center; padding:10px">No lobby yet. This page will auto‑host a lobby if none exists.</div>
     </section>
 
-    <!-- Trade board -->
-    <section id="board" class="card panel" style="margin-top:16px">
-      <div class="tradeboard" id="tradeBoard">
-        <div class="col">
-          <h3>Your Offer</h3>
-          <div id="mySlots" class="slots"></div>
-        </div>
-        <div class="middle">
-          <div class="big">TRADE</div>
-          <div id="stageTxt" class="stage">Pick items → Ready → Confirm</div>
-          <div class="checks">
-            <button id="btnReady" class="good" disabled>Ready ✓</button>
-            <button id="btnConfirm" class="warn" disabled>Confirm</button>
-            <button id="btnCancel" class="ghost" disabled>Cancel</button>
+    <div class="grid" style="margin-top:16px">
+      <section class="card panel" id="tradeBoardCard">
+        <h2>Trade Board</h2>
+        <div id="boardWrap" class="boardWrap">
+          <div class="col">
+            <h3>Your Offer</h3>
+            <div id="mySlots" class="slots"></div>
           </div>
-          <div class="progress" title="Transfer progress" style="width:160px"><div id="progressBar"></div></div>
+          <div class="middle">
+            <div class="big">TRADE</div>
+            <div id="stageTxt" class="stage">Pick items → Ready → Confirm</div>
+            <div class="checks">
+              <button id="btnReady" class="good" disabled>Ready ✓</button>
+              <button id="btnConfirm" class="warn" disabled>Confirm</button>
+              <button id="btnCancel" class="ghost" disabled>Cancel</button>
+            </div>
+            <div class="progress" title="Transfer progress" style="width:180px"><div id="progressBar"></div></div>
+          </div>
+          <div class="col">
+            <h3>Their Offer</h3>
+            <div id="theirSlots" class="slots"></div>
+          </div>
         </div>
-        <div class="col">
-          <h3>Their Offer</h3>
-          <div id="theirSlots" class="slots"></div>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Vault -->
-    <section id="vault" class="vault" style="margin-top:16px">
-      <h3>Your Vault</h3>
-      <div class="drop" id="drop">
-        <div>
-          <div style="font-weight:800">Upload files</div>
-          <div class="hint">Drag & drop or choose files. They stay private until the trade completes.</div>
+      <section class="card panel">
+        <h2>Inbox</h2>
+        <div id="inbox" class="inbox"></div>
+        <div id="inboxEmpty" class="hint" style="text-align:center; padding:10px">No incoming trade requests yet.</div>
+
+        <div class="vault" style="margin-top:16px">
+          <h3>Your Vault</h3>
+          <div class="drop" id="drop">
+            <div>
+              <div style="font-weight:800">Upload files</div>
+              <div class="hint">Drag & drop or choose files. Files stay private until trade completes.</div>
+            </div>
+            <div>
+              <label>
+                <input id="fileInput" type="file" multiple style="display:none" />
+                <button class="primary" id="chooseBtn">Choose files…</button>
+              </label>
+            </div>
+          </div>
+          <div id="vaultList" class="list"></div>
+          <div id="vaultEmpty" class="hint" style="text-align:center; padding:10px">No files yet. Add some to your vault.</div>
         </div>
-        <div>
-          <label>
-            <input id="fileInput" type="file" multiple style="display:none" />
-            <button class="primary" id="chooseBtn">Choose files…</button>
-          </label>
-        </div>
-      </div>
-      <div id="vaultList" class="list"></div>
-      <div id="vaultEmpty" class="hint" style="text-align:center; padding:10px">No files yet. Add some to your vault.</div>
-    </section>
+      </section>
+    </div>
   </div>
 
   <div id="toast" class="toast"></div>
 
   <script>
+    const LOBBY_ID = 'ft-lobby-v1';
+
     const ui={
       myId:$('#myId'), copyId:$('#copyId'), statusDot:$('#statusDot'), statusText:$('#statusText'),
-      partnerId:$('#partnerId'), btnConnect:$('#btnConnect'), btnDisconnect:$('#btnDisconnect'),
-      gate:$('#gate'), board:$('#board'), vault:$('#vault'),
-      mySlots:$('#mySlots'), theirSlots:$('#theirSlots'),
-      btnReady:$('#btnReady'), btnConfirm:$('#btnConfirm'), btnCancel:$('#btnCancel'),
-      progress:$('#progressBar'), stageTxt:$('#stageTxt'),
-      drop:$('#drop'), fileInput:$('#fileInput'), chooseBtn:$('#chooseBtn'),
-      vaultList:$('#vaultList'), vaultEmpty:$('#vaultEmpty'), toast:$('#toast')
+      users:$('#users'), usersEmpty:$('#usersEmpty'), usersCount:$('#usersCount'),
+      boardWrap:$('#boardWrap'), mySlots:$('#mySlots'), theirSlots:$('#theirSlots'),
+      stageTxt:$('#stageTxt'), btnReady:$('#btnReady'), btnConfirm:$('#btnConfirm'), btnCancel:$('#btnCancel'), progress:$('#progressBar'),
+      inbox:$('#inbox'), inboxEmpty:$('#inboxEmpty'),
+      chooseBtn:$('#chooseBtn'), fileInput:$('#fileInput'), drop:$('#drop'), vaultList:$('#vaultList'), vaultEmpty:$('#vaultEmpty')
     };
 
     const SLOTS=9, CHUNK=64*1024, MAX_FILE=50*1024*1024;
-    const state={ peer:null, conn:null, myId:null, idb:null,
-      vault:[], offers:[], // array of file ids (max 9)
-      theirOffer:[], accepted:{me:false,them:false}, confirmed:{me:false,them:false},
-      rx:{ id:null, total:0, done:0, chunks:[] }
+    const state={
+      // peers
+      main:null, hub:null, lobbyConn:null,
+      myId:null,
+      // presence
+      isHub:false, clients:new Map(), activeUsers:[],
+      // vault & trade
+      idb:null, vault:[], offers:[],
+      active:null, // { partnerId, theirOffer:[meta], myOfferIds:[id], accepted:{me,them}, confirmed:{me,them}, rx:{map,done,total}, tx:{done,total} }
+      inbox:[]
     };
 
     function $(q){return document.querySelector(q)}
     function el(tag,attrs={},children=[]){ const e=document.createElement(tag); for(const k in attrs){ if(k==='class') e.className=attrs[k]; else if(k==='html') e.innerHTML=attrs[k]; else e.setAttribute(k, attrs[k]); } children.forEach(c=>e.appendChild(c)); return e; }
     function fmtBytes(b){ const u=['B','KB','MB','GB']; let i=0; while(b>=1024&&i<u.length-1){b/=1024;i++} return b.toFixed(b<10&&i?1:0)+' '+u[i]; }
-    function toast(msg){ const t=el('div',{class:'t',html:msg}); ui.toast.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(6px)'; setTimeout(()=>t.remove(),300); }, 2200); }
+    function toast(msg){ const t=el('div',{class:'t',html:msg}); document.getElementById('toast').appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(6px)'; setTimeout(()=>t.remove(),300); }, 2200); }
 
     // IndexedDB
-    const DB='filetrader-v2';
+    const DB='filetrader-v3';
     function idbOpen(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB,1); r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains('files')) db.createObjectStore('files',{keyPath:'id'}); }; r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
     function idbPut(rec){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readwrite'); tx.objectStore('files').put(rec); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
     function idbGet(id){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readonly'); const q=tx.objectStore('files').get(id); q.onsuccess=()=>res(q.result||null); q.onerror=()=>rej(q.error); }); }
     function idbAll(){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readonly'); const q=tx.objectStore('files').getAll(); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>rej(q.error); }); }
 
-    // Render slots
-    function renderSlots(){
-      ui.mySlots.innerHTML=''; ui.theirSlots.innerHTML='';
-      const mine = state.vault.filter(v=>state.offers.includes(v.id));
-      const theirs = state.theirOffer;
-      for(let i=0;i<SLOTS;i++){
-        const f=mine[i];
-        const slot=el('div',{class:'slot'+(f?' fill':'')});
-        if(f){ slot.appendChild(el('div',{class:'chip',html:`<div class="name" title="${f.name}">${f.name}</div><div class="meta">${fmtBytes(f.size)}</div>`}));
-          const x=el('button',{class:'x'},[]); x.textContent='×'; x.onclick=()=>removeFromOffer(f.id); slot.appendChild(x);
+    // ===== Presence / Lobby =====
+    async function startPeers(){
+      // Main peer for trades
+      state.myId = genId(); ui.myId.textContent=state.myId;
+      state.main = new Peer(state.myId, { debug:2, config:{ iceServers:[ {urls:'stun:stun.l.google.com:19302'}, {urls:'stun:stun.services.mozilla.com'} ] } });
+      state.main.on('open', ()=>{ ui.statusText.textContent='Online'; tryHostOrJoinLobby(); });
+      state.main.on('connection', (conn)=>{ // direct trade channels
+        bindTradeConn(conn);
+      });
+      state.main.on('error', (e)=>{ console.error('main peer error',e); ui.statusText.textContent='Error'; });
+      state.main.on('disconnected', ()=>{ ui.statusText.textContent='Disconnected'; ui.statusDot.classList.remove('good'); });
+    }
+
+    function tryHostOrJoinLobby(){
+      // Attempt to host a dedicated hub peer with id LOBBY_ID
+      state.hub = new Peer(LOBBY_ID, { debug:1 });
+      state.hub.on('open', ()=>{ // we became hub
+        state.isHub=true; ui.usersEmpty.style.display='none';
+        toast('Hosting lobby');
+        state.hub.on('connection', c=>bindHubClient(c));
+        ui.usersCount.textContent = `${state.clients.size} online`;
+      });
+      state.hub.on('error', (e)=>{
+        if(e.type === 'unavailable-id'){ // someone else is hub; join it via main
+          state.isHub=false; state.hub = null;
+          joinLobbyAsClient();
+        } else {
+          console.warn('hub error',e); joinLobbyAsClient();
         }
-        ui.mySlots.appendChild(slot);
-      }
-      for(let i=0;i<SLOTS;i++){
-        const f=theirs[i];
-        const slot=el('div',{class:'slot'+(f?' fill':'')});
-        if(f){ slot.appendChild(el('div',{class:'chip',html:`<div class="name" title="${f.name}">${f.name}</div><div class="meta">${fmtBytes(f.size)}</div>`})); }
-        ui.theirSlots.appendChild(slot);
-      }
-      refreshStage();
-    }
-
-    function refreshStage(){
-      ui.btnReady.disabled = !(state.offers.length>0 && state.theirOffer.length>0);
-      ui.btnConfirm.disabled = !(state.accepted.me && state.accepted.them);
-      ui.btnCancel.disabled = !!(state.conn && state.conn.open);
-      ui.stageTxt.textContent = state.confirmed.me && state.confirmed.them ? 'Confirming…' : (state.accepted.me ? (state.accepted.them?'Both ready — Confirm to trade':'You are ready — waiting for them…') : 'Pick items → Ready → Confirm');
-    }
-
-    function addToOffer(id){ if(state.offers.includes(id)) return; if(state.offers.length>=SLOTS){ toast('Offer slots full'); return; } state.offers.push(id); changedMyOffer(); }
-    function removeFromOffer(id){ state.offers = state.offers.filter(x=>x!==id); changedMyOffer(); }
-
-    function changedMyOffer(){
-      // Any change resets accept/confirm for both sides
-      state.accepted.me=false; state.accepted.them=false; state.confirmed.me=false; state.confirmed.them=false;
-      renderSlots(); sendJson({type:'trade_counter_set', offer: buildMyOfferMeta()});
-    }
-
-    function buildMyOfferMeta(){ return state.vault.filter(v=>state.offers.includes(v.id)).map(({id,name,size,type})=>({id,name,size,type})); }
-
-    // Vault rendering
-    function renderVault(){ ui.vaultList.innerHTML=''; const empty = state.vault.length===0; ui.vaultEmpty.style.display = empty? 'block':'none';
-      state.vault.sort((a,b)=>b.ts-a.ts).forEach(file=>{
-        const card=el('div',{class:'cardfile'});
-        card.appendChild(el('div',{class:'title',html:file.name}));
-        card.appendChild(el('div',{class:'meta',html:fmtBytes(file.size)}));
-        const row=el('div',{class:'row'});
-        const add=el('button',{class:'primary'}); add.textContent = state.offers.includes(file.id)?'In Offer':'Add to Offer';
-        add.onclick=()=>{ if(state.offers.includes(file.id)) removeFromOffer(file.id); else addToOffer(file.id); renderVault(); };
-        const dl=el('button',{class:'ghost'}); dl.textContent='Download'; dl.onclick=async()=>{ const rec=await idbGet(file.id); if(!rec||!rec.data){ toast('Missing data'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rec.data],{type:rec.type})); a.download=rec.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 3000); };
-        row.appendChild(add); row.appendChild(dl); card.appendChild(row);
-        ui.vaultList.appendChild(card);
       });
     }
 
-    // File input
+    function joinLobbyAsClient(){
+      const c = state.main.connect(LOBBY_ID, { reliable:true });
+      c.on('open', ()=>{ state.lobbyConn=c; ui.usersEmpty.style.display='none'; sendLobby({type:'presence_join', id: state.myId}); });
+      c.on('data', onLobbyData);
+      c.on('close', ()=>{ ui.usersEmpty.style.display='block'; state.activeUsers=[]; renderUsers(); });
+      c.on('error', (e)=>{ console.warn('lobby client error',e); });
+    }
+
+    function bindHubClient(conn){
+      state.clients.set(conn.peer,{conn}); ui.usersCount.textContent = `${state.clients.size} online`;
+      // send snapshot
+      const list=[...state.clients.keys()]; conn.send(JSON.stringify({type:'presence_snapshot', list}));
+      // broadcast join
+      broadcastHub({type:'presence_update', list});
+      conn.on('data', (p)=>onHubData(conn,p));
+      conn.on('close', ()=>{ state.clients.delete(conn.peer); const list=[...state.clients.keys()]; broadcastHub({type:'presence_update', list}); ui.usersCount.textContent = `${state.clients.size} online`; });
+      conn.on('error', ()=>{ state.clients.delete(conn.peer); const list=[...state.clients.keys()]; broadcastHub({type:'presence_update', list}); ui.usersCount.textContent = `${state.clients.size} online`; });
+    }
+    function onHubData(conn,payload){ let msg=payload; if(typeof payload==='string'){ try{ msg=JSON.parse(payload); }catch{} }
+      if(msg.type==='presence_join'){ /* already tracked by connection open */ }
+    }
+    function broadcastHub(obj){ const s=JSON.stringify(obj); for(const {conn} of state.clients.values()){ try{ conn.open && conn.send(s); }catch{} }
+    }
+    function sendLobby(obj){ if(state.isHub){ // loopback emulate
+        onLobbyData(JSON.stringify({type:'presence_snapshot', list:[...state.clients.keys()] }));
+      } else if(state.lobbyConn && state.lobbyConn.open){ state.lobbyConn.send(JSON.stringify(obj)); }
+    }
+
+    function onLobbyData(payload){ let msg=payload; if(typeof payload==='string'){ try{ msg=JSON.parse(payload); }catch{} }
+      if(!msg||!msg.type) return;
+      if(msg.type==='presence_snapshot' || msg.type==='presence_update'){
+        state.activeUsers = (msg.list||[]).filter(id=>id!==state.myId);
+        renderUsers();
+      }
+    }
+
+    function renderUsers(){ ui.users.innerHTML=''; if(state.activeUsers.length===0){ ui.usersEmpty.style.display='block'; ui.usersCount.textContent='0 online'; return; } ui.usersEmpty.style.display='none'; ui.usersCount.textContent = `${state.activeUsers.length+1} online`;
+      state.activeUsers.forEach(id=>{
+        const row=el('div',{class:'user'});
+        const left=el('div',{},[ el('div',{class:'mono',html:id}) ]);
+        const btn=el('button',{class:'primary'}); btn.textContent='Request Trade'; btn.onclick=()=>requestTradeTo(id);
+        row.appendChild(left); row.appendChild(btn); ui.users.appendChild(row);
+      });
+    }
+
+    function requestTradeTo(id){ const conn = state.main.connect(id,{reliable:true}); conn.on('open',()=>{ bindTradeConn(conn); sendTradeRequest(); toast('Trade request sent'); }); conn.on('error', e=>toast('Cannot connect')); }
+
+    // ===== Trade Protocol =====
+    function bindTradeConn(conn){ state.partnerConn = conn; ui.statusDot.classList.add('good'); ui.statusText.textContent='Connected to '+conn.peer; ui.btnCancel.disabled=false; conn.on('data', onTradeData); conn.on('close', ()=>{ ui.statusText.textContent='Peer closed'; ui.statusDot.classList.remove('good'); }); conn.on('error', ()=>{ ui.statusText.textContent='Conn error'; ui.statusDot.classList.remove('good'); }); }
+    function send(obj){ if(state.partnerConn && state.partnerConn.open){ state.partnerConn.send(JSON.stringify(obj)); } }
+
+    function ensureActive(partnerId){ if(state.active) return; state.active={ partnerId, theirOffer:[], myOfferIds:[], accepted:{me:false,them:false}, confirmed:{me:false,them:false}, rx:{map:new Map(), done:0, total:0}, tx:{done:0, total:0} }; refreshStage(); }
+
+    function onTradeData(payload){ if(payload instanceof ArrayBuffer || payload instanceof Blob){ onTradeChunk(payload); return; } let msg=payload; if(typeof payload==='string'){ try{ msg=JSON.parse(payload); }catch{ return; } }
+      switch(msg.type){
+        case 'hello': break;
+        case 'trade_request': { ensureActive(state.partnerConn.peer); // put into inbox
+          const offer = msg.offer||[]; state.inbox.unshift({ id:'in-'+Math.random().toString(36).slice(2,8), partnerId: state.partnerConn.peer, offer }); renderInbox(); toast('Incoming trade request'); break; }
+        case 'trade_counter_set': { ensureActive(state.partnerConn.peer); state.active.theirOffer = msg.offer||[]; // reset flags
+          state.active.accepted.them=false; state.active.confirmed.them=false; renderSlots(); refreshStage(); break; }
+        case 'trade_accept': { ensureActive(state.partnerConn.peer); state.active.accepted.them = msg.accepted===true; refreshStage(); break; }
+        case 'trade_confirm': { ensureActive(state.partnerConn.peer); state.active.confirmed.them = msg.confirmed===true; refreshStage(); if(state.active.confirmed.them && state.active.confirmed.me){ beginExchange(); } break; }
+        case 'request_files': { ensureActive(state.partnerConn.peer); prepareTxCounts(msg.ids||[]); sendFiles(msg.ids||[]); break; }
+        case 'file_start': { ensureActive(state.partnerConn.peer); const m={id:msg.id, name:msg.name, size:msg.size, type:msg.type}; state.active.rx.map.set(m.id,{meta:m, chunks:[], received:0}); state.active.rx.total = state.active.theirOffer.length; break; }
+        case 'file_end': { const rec=state.active.rx.map.get(msg.id); if(rec){ const blob=new Blob(rec.chunks,{type:rec.meta.type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=rec.meta.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 5*60*1000); state.active.rx.map.delete(msg.id); state.active.rx.done++; updateOverallProgress(); checkComplete(); } break; }
+        case 'trade_cancel': { state.active=null; resetBoard(); toast('Trade cancelled'); break; }
+      }
+    }
+
+    function sendTradeRequest(){ ensureActive(state.partnerConn.peer); send({type:'trade_request', offer: buildMyOfferMeta()}); }
+
+    function buildMyOfferMeta(){ return state.vault.filter(v=>state.offers.includes(v.id)).map(({id,name,size,type})=>({id,name,size,type})); }
+
+    function renderSlots(){ ui.mySlots.innerHTML=''; ui.theirSlots.innerHTML=''; const mine = state.vault.filter(v=>state.offers.includes(v.id)); const theirs = state.active? state.active.theirOffer:[];
+      for(let i=0;i<SLOTS;i++){ const f=mine[i]; const s=el('div',{class:'slot'+(f?' fill':'')}); if(f){ s.appendChild(el('div',{class:'chip',html:`<div class="name" title="${f.name}">${f.name}</div><div class="meta">${fmtBytes(f.size)}</div>`})); const x=el('button',{class:'x'}); x.textContent='×'; x.onclick=()=>removeFromOffer(f.id); s.appendChild(x);} ui.mySlots.appendChild(s); }
+      for(let i=0;i<SLOTS;i++){ const f=theirs[i]; const s=el('div',{class:'slot'+(f?' fill':'')}); if(f){ s.appendChild(el('div',{class:'chip',html:`<div class="name" title="${f.name}">${f.name}</div><div class="meta">${fmtBytes(f.size)}</div>`})); } ui.theirSlots.appendChild(s); }
+    }
+
+    function refreshStage(){ const canReady = state && state.offers.length>0 && state.active && state.active.theirOffer.length>0; ui.btnReady.disabled = !canReady; ui.btnConfirm.disabled = !(state && state.active && state.active.accepted.me && state.active.accepted.them); ui.btnCancel.disabled = !!(state && state.partnerConn && state.partnerConn.open); ui.stageTxt.textContent = !state? 'Pick items → Ready → Confirm' : (state.active?.confirmed?.me&&state.active?.confirmed?.them?'Confirming…': (state.active?.accepted?.me? (state.active?.accepted?.them?'Both ready — Confirm to trade':'You are ready — waiting for them…') : 'Pick items → Ready → Confirm')); }
+
+    function addToOffer(id){ if(state.offers.includes(id)) return; if(state.offers.length>=SLOTS){ toast('Offer slots full'); return; } state.offers.push(id); changedMyOffer(); }
+    function removeFromOffer(id){ state.offers = state.offers.filter(x=>x!==id); changedMyOffer(); }
+    function changedMyOffer(){ if(!state) return; if(state.active){ state.active.accepted.me=false; state.active.accepted.them=false; state.active.confirmed.me=false; state.active.confirmed.them=false; } renderSlots(); refreshStage(); send({type:'trade_counter_set', offer: buildMyOfferMeta()}); }
+
+    function beginExchange(){ if(!state||!state.active) return; ui.stageTxt.textContent='Exchanging files…'; ui.btnReady.disabled=true; ui.btnConfirm.disabled=true; // request their files; they will request ours
+      const wantIds = (state.active.theirOffer||[]).map(f=>f.id); state.active.rx.done=0; state.active.rx.total = wantIds.length; state.active.tx = { done:0, total: state.offers.length}; send({type:'request_files', ids: wantIds}); }
+
+    function prepareTxCounts(ids){ if(!state||!state.active) return; state.active.tx = { done:0, total: ids.length }; updateOverallProgress(); }
+    async function sendFiles(ids){ for(const id of ids){ const rec=await idbGet(id); if(!rec){ console.warn('missing',id); continue; } await sendFile(rec); state.active.tx.done++; updateOverallProgress(); checkComplete(); } }
+
+    async function sendFile(rec){ send({type:'file_start', id: rec.id, name: rec.name, size: rec.size, type: rec.type}); const data = rec.data || (await idbGet(rec.id))?.data; if(!data){ console.warn('no data',rec.id); return; } let sent=0; for(let off=0; off<data.byteLength; off+=CHUNK){ const chunk=data.slice(off, Math.min(off+CHUNK, data.byteLength)); state.partnerConn.send(chunk); sent+=chunk.byteLength; const pct = rec.size? Math.round((sent/rec.size)*100) : 0; ui.progress.style.width=pct+'%'; await new Promise(r=>setTimeout(r,0)); } send({type:'file_end', id: rec.id, name: rec.name, type: rec.type}); }
+
+    async function onTradeChunk(buf){ if(!(buf instanceof ArrayBuffer)) buf = await buf.arrayBuffer(); if(!state||!state.active) return; // Attach to latest file in rx.map (the last started)
+      // Find the most recent entry awaiting chunks
+      const keys=[...state.active.rx.map.keys()]; if(keys.length===0) return; const currentKey=keys[keys.length-1]; const entry=state.active.rx.map.get(currentKey); if(!entry) return; entry.chunks.push(buf); entry.received += buf.byteLength; const pct = entry.meta.size? Math.min(100, Math.round((entry.received/entry.meta.size)*100)) : 0; ui.progress.style.width=pct+'%'; }
+
+    function updateOverallProgress(){ if(!state||!state.active) return; const rx = state.active.rx; const tx = state.active.tx; const totalSteps = (rx.total||0) + (tx.total||0); const done = (rx.done||0) + (tx.done||0); const pct = totalSteps? Math.round((done/totalSteps)*100) : 0; ui.progress.style.width = pct+'%'; }
+
+    function checkComplete(){ if(!state||!state.active) return; const done = state.active.rx.done === state.active.rx.total && state.active.tx.done === state.active.tx.total; if(done){ ui.stageTxt.textContent='Trade complete'; toast('Trade complete'); // reset flags for next trade
+        state.active.accepted={me:false,them:false}; state.active.confirmed={me:false,them:false}; ui.btnCancel.disabled=false; }
+    }
+
+    // Inbox UI
+    function renderInbox(){ ui.inbox.innerHTML=''; if(state.inbox.length===0){ ui.inboxEmpty.style.display='block'; return; } ui.inboxEmpty.style.display='none';
+      state.inbox.forEach(item=>{ const total=item.offer.reduce((a,f)=>a+f.size,0); const row=el('div',{class:'inItem'});
+        row.appendChild(el('div',{html:`<span class="mono">${item.partnerId}</span> <span class="hint">• ${item.offer.length} files • ${fmtBytes(total)}</span>`}));
+        const actions=el('div',{});
+        const review=el('button',{class:'primary'}); review.textContent='Review'; review.onclick=()=>{ openTradeWith(item.partnerId, item.offer); state.inbox = state.inbox.filter(x=>x!==item); renderInbox(); };
+        const ignore=el('button',{class:'ghost'}); ignore.textContent='Ignore'; ignore.onclick=()=>{ state.inbox = state.inbox.filter(x=>x!==item); renderInbox(); };
+        actions.appendChild(review); actions.appendChild(ignore); row.appendChild(actions); ui.inbox.appendChild(row);
+      });
+    }
+
+    function openTradeWith(partnerId, theirOffer){ ensureActive(partnerId); state.active.theirOffer = theirOffer||[]; renderSlots(); refreshStage(); }
+
+    // Vault UI
+    function renderVault(){ ui.vaultList.innerHTML=''; const empty=state.vault.length===0; ui.vaultEmpty.style.display = empty?'block':'none';
+      state.vault.sort((a,b)=>b.ts-a.ts).forEach(file=>{ const card=el('div',{class:'cardfile'});
+        card.appendChild(el('div',{class:'title',html:file.name}));
+        card.appendChild(el('div',{class:'meta',html:fmtBytes(file.size)}));
+        const row=el('div',{});
+        const add=el('button',{class:'primary'}); add.textContent = state.offers.includes(file.id)?'In Offer':'Add to Offer'; add.onclick=()=>{ if(state.offers.includes(file.id)) removeFromOffer(file.id); else addToOffer(file.id); renderVault(); };
+        const dl=el('button',{class:'ghost'}); dl.textContent='Download'; dl.onclick=async()=>{ const rec=await idbGet(file.id); if(!rec||!rec.data){ toast('Missing data'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rec.data],{type:rec.type})); a.download=rec.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 3000); };
+        row.appendChild(add); row.appendChild(dl); card.appendChild(row); ui.vaultList.appendChild(card);
+      });
+    }
+
+    // File input / DnD
     ui.chooseBtn.addEventListener('click',()=>ui.fileInput.click());
     ui.fileInput.addEventListener('change',()=>handleFiles(ui.fileInput.files));
     ui.drop.addEventListener('dragover',e=>{e.preventDefault();});
     ui.drop.addEventListener('drop',e=>{e.preventDefault(); handleFiles(e.dataTransfer.files)});
 
-    async function handleFiles(list){ const files = Array.from(list||[]);
-      for(const f of files){ if(f.size>MAX_FILE){ toast(`${f.name}: too large (> ${fmtBytes(MAX_FILE)})`); continue; } const buf=await f.arrayBuffer(); const rec={ id: crypto.randomUUID(), name:f.name, size:f.size, type:f.type||'application/octet-stream', ts:Date.now(), data:buf }; await idbPut(rec); state.vault.push({id:rec.id,name:rec.name,size:rec.size,type:rec.type,ts:rec.ts}); }
-      renderVault(); renderSlots();
-    }
-
-    // PeerJS
-    function setupPeer(){ state.myId = genId(); ui.myId.textContent = state.myId; state.peer = new Peer(state.myId, { debug:2, config:{ iceServers:[ {urls:'stun:stun.l.google.com:19302'}, {urls:'stun:stun.services.mozilla.com'} ] } });
-      state.peer.on('open', ()=>{ ui.statusText.textContent='Ready'; });
-      state.peer.on('connection', bindConn);
-      state.peer.on('disconnected', ()=>{ setDisconnected('Disconnected'); });
-      state.peer.on('error', e=>{ console.error(e); toast('Peer error: '+e.type); setDisconnected('Error'); });
-    }
-    function genId(){ const b=new Uint8Array(6); crypto.getRandomValues(b); return 'ft-'+Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join(''); }
-
-    function bindConn(conn){ state.conn = conn; conn.on('open', ()=>{ ui.statusText.textContent='Connected to '+conn.peer; ui.statusDot.classList.add('good'); ui.btnDisconnect.disabled=false; enableTrading(true); sendJson({type:'hello'}); sendJson({type:'trade_counter_set', offer: buildMyOfferMeta()}); });
-      conn.on('data', onData); conn.on('close', ()=>setDisconnected('Peer closed')); conn.on('error', e=>{ console.error('conn error',e); setDisconnected('Conn error'); }); }
-
-    function setDisconnected(text){ ui.statusText.textContent=text; ui.statusDot.classList.remove('good'); ui.btnDisconnect.disabled=true; enableTrading(false); state.accepted={me:false,them:false}; state.confirmed={me:false,them:false}; }
-
-    function connectTo(id){ if(!state.peer){ toast('Peer not ready'); return; } bindConn(state.peer.connect(id,{reliable:true})); }
-    function sendJson(obj){ if(state.conn && state.conn.open){ state.conn.send(JSON.stringify(obj)); } }
-
-    // Protocol
-    async function onData(payload){ if(payload instanceof ArrayBuffer || payload instanceof Blob){ await onChunk(payload); return; } let msg=payload; if(typeof payload==='string'){ try{ msg=JSON.parse(payload); }catch{ return; } }
-      switch(msg.type){
-        case 'hello': break;
-        case 'trade_counter_set': { state.theirOffer = msg.offer||[]; // reset flags because offer changed
-          state.accepted.them=false; state.confirmed.them=false; renderSlots(); break; }
-        case 'trade_accept': { state.accepted.them = msg.accepted===true; refreshStage(); break; }
-        case 'trade_confirm': { state.confirmed.them = msg.confirmed===true; refreshStage(); if(state.confirmed.them && state.confirmed.me){ beginExchange(); } break; }
-        case 'request_files': { const ids=msg.ids||[]; for(const id of ids){ const rec=await idbGet(id); if(!rec){ console.warn('missing rec',id); continue; } await sendFile(rec); } break; }
-        case 'file_start': { state.rx = { id: msg.id, total: msg.size, done:0, chunks:[] }; break; }
-        case 'file_end': { const b=new Blob(state.rx.chunks,{type:msg.type}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=msg.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 5*60*1000); state.rx={id:null,total:0,done:0,chunks:[]}; ui.progress.style.width='0%'; toast('Received '+msg.name); break; }
-      }
-    }
-
-    async function onChunk(buf){ if(!(buf instanceof ArrayBuffer)) buf = await buf.arrayBuffer(); if(!state.rx||!state.rx.id) return; state.rx.chunks.push(buf); state.rx.done += buf.byteLength; const pct = state.rx.total? Math.min(100, Math.round((state.rx.done/state.rx.total)*100)) : 0; ui.progress.style.width=pct+'%'; }
-
-    async function sendFile(rec){ sendJson({type:'file_start', id: rec.id, name: rec.name, size: rec.size, type: rec.type}); const data = rec.data || (await idbGet(rec.id))?.data; if(!data){ console.warn('no data',rec.id); return; } let sent=0; for(let off=0; off<data.byteLength; off+=CHUNK){ const chunk=data.slice(off, Math.min(off+CHUNK, data.byteLength)); state.conn.send(chunk); sent+=chunk.byteLength; const pct = rec.size? Math.round((sent/rec.size)*100) : 0; ui.progress.style.width=pct+'%'; await new Promise(r=>setTimeout(r,0)); } sendJson({type:'file_end', id: rec.id, name: rec.name, type: rec.type}); }
-
-    function beginExchange(){ ui.stageTxt.textContent='Exchanging files…'; ui.btnReady.disabled=true; ui.btnConfirm.disabled=true; // request their files; they request ours
-      const want = (state.theirOffer||[]).map(f=>f.id); sendJson({type:'request_files', ids: want}); }
-
-    // Enable/disable trade UI by connection
-    function enableTrading(yes){ [ui.board, ui.vault].forEach(sec=>{ if(yes){ sec.classList.remove('dim'); } else { sec.classList.add('dim'); } }); ui.btnCancel.disabled = !yes; ui.btnReady.disabled = !yes; }
+    async function handleFiles(list){ const files = Array.from(list||[]); for(const f of files){ if(f.size>MAX_FILE){ toast(`${f.name}: too large (> ${fmtBytes(MAX_FILE)})`); continue; } const buf=await f.arrayBuffer(); const rec={ id: crypto.randomUUID(), name:f.name, size:f.size, type:f.type||'application/octet-stream', ts:Date.now(), data:buf }; await idbPut(rec); state.vault.push({id:rec.id,name:rec.name,size:rec.size,type:rec.type,ts:rec.ts}); } renderVault(); renderSlots(); }
 
     // Controls
     ui.copyId.addEventListener('click', async()=>{ await navigator.clipboard.writeText(state.myId||''); toast('ID copied'); });
-    ui.btnConnect.addEventListener('click',()=>{ const id=ui.partnerId.value.trim(); if(!id){ toast('Enter partner ID'); return; } connectTo(id); });
-    ui.btnDisconnect.addEventListener('click',()=>{ try{ state.conn && state.conn.close(); }catch{} });
-    ui.btnReady.addEventListener('click',()=>{ if(!(state.offers.length>0 && state.theirOffer.length>0)) return; state.accepted.me = true; state.confirmed.me=false; sendJson({type:'trade_accept', accepted:true}); refreshStage(); });
-    ui.btnConfirm.addEventListener('click',()=>{ if(!(state.accepted.me && state.accepted.them)) return; state.confirmed.me = true; sendJson({type:'trade_confirm', confirmed:true}); refreshStage(); if(state.confirmed.them){ beginExchange(); } });
-    ui.btnCancel.addEventListener('click',()=>{ state.accepted={me:false,them:false}; state.confirmed={me:false,them:false}; refreshStage(); toast('Trade cancelled'); });
+    ui.btnReady.addEventListener('click',()=>{ if(!state||!state.active) return; if(!(state.offers.length>0 && state.active.theirOffer.length>0)) return; state.active.accepted.me = true; state.active.confirmed.me=false; send({type:'trade_accept', accepted:true}); refreshStage(); });
+    ui.btnConfirm.addEventListener('click',()=>{ if(!state||!state.active) return; if(!(state.active.accepted.me && state.active.accepted.them)) return; state.active.confirmed.me = true; send({type:'trade_confirm', confirmed:true}); refreshStage(); if(state.active.confirmed.them){ beginExchange(); } });
+    ui.btnCancel.addEventListener('click',()=>{ if(!state||!state.active) return; send({type:'trade_cancel'}); state.active=null; resetBoard(); });
+
+    function resetBoard(){ ui.mySlots.innerHTML=''; ui.theirSlots.innerHTML=''; ui.progress.style.width='0%'; state.offers=[]; renderSlots(); refreshStage(); }
+
+    function genId(){ const b=new Uint8Array(6); crypto.getRandomValues(b); return 'ft-'+Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join(''); }
 
     // Boot
-    (async function(){ state.idb = await idbOpen(); const recs=await idbAll(); state.vault = recs.map(({id,name,size,type,ts})=>({id,name,size,type,ts})); renderVault(); renderSlots(); enableTrading(false); setupPeer(); })();
+    (async function(){ state.idb = await idbOpen(); const recs=await idbAll(); state.vault = recs.map(({id,name,size,type,ts})=>({id,name,size,type,ts})); renderVault(); startPeers(); })();
   </script>
 </body>
 </html>
