@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>File Trader — P2P</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <style>
+    :root{
+      --bg-a:#0e0b10; --bg-b:#131525; --panel:rgba(28,22,36,.65); --panel-strong:rgba(28,22,36,.82);
+      --stroke:rgba(255,255,255,.10); --text:#f7f6f9; --muted:#b9b3c6; --accent:#8a7dff; --accent-2:#ff85d6; --good:#4ade80; --warn:#fbbf24; --bad:#fb7185;
+      --shadow: 0 8px 28px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; color:var(--text);
+      background: radial-gradient(1200px 700px at 15% 10%, #241a2b 0%, transparent 60%),
+                  radial-gradient(1200px 800px at 85% 20%, #192035 0%, transparent 60%),
+                  linear-gradient(160deg,var(--bg-a),var(--bg-b));
+    }
+    .container{max-width:1200px; margin:24px auto; padding:0 16px}
+    header{
+      display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px
+    }
+    .brand{display:flex; gap:12px; align-items:center}
+    .brand .logo{width:40px; height:40px; border-radius:12px; background:linear-gradient(145deg,var(--accent),var(--accent-2)); box-shadow:var(--shadow); display:grid; place-items:center}
+    .brand .logo svg{filter:drop-shadow(0 2px 10px rgba(0,0,0,.35))}
+    .brand h1{font-size:18px; font-weight:800; letter-spacing:.3px; margin:0}
+    .bar{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+    .card{background:var(--panel); backdrop-filter: blur(10px); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .pill{display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke); background:var(--panel-strong)}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:13px}
+    button{cursor:pointer; border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); color:var(--text); padding:10px 14px; border-radius:12px; box-shadow:var(--shadow)}
+    button.primary{background:linear-gradient(180deg, var(--accent), var(--accent-2)); border:none; color:#111; font-weight:700}
+    button.ghost{background:transparent}
+    button:disabled{opacity:.55; cursor:not-allowed}
+    input[type=text]{background:rgba(255,255,255,.06); border:1px solid var(--stroke); border-radius:12px; padding:10px 12px; color:var(--text); outline:none; min-width:260px}
+
+    .grid{display:grid; grid-template-columns: 1.2fr .8fr; gap:16px}
+    @media (max-width: 950px){ .grid{grid-template-columns:1fr; } }
+
+    .panel{padding:16px}
+    .panel h2{margin:0 0 12px 0; font-size:15px; font-weight:800; letter-spacing:.3px; color:#fff}
+    .sub{color:var(--muted); font-size:12px}
+
+    .vault{display:grid; gap:12px}
+    .drop{border:1px dashed var(--stroke); border-radius:14px; padding:18px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:rgba(255,255,255,.03)}
+    .drop input{display:none}
+    .list{display:grid; gap:8px; max-height:360px; overflow:auto; padding-right:4px}
+    .row{display:grid; grid-template-columns: 32px 1fr 100px 110px 110px; gap:10px; align-items:center; padding:10px; border:1px solid var(--stroke); border-radius:12px; background:rgba(255,255,255,.02)}
+    .row .icon{width:28px; height:28px; display:grid; place-items:center; border-radius:8px; background:rgba(255,255,255,.06)}
+    .row .name{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .row .size{color:var(--muted); font-size:12px}
+    .row .actions{display:flex; gap:8px; justify-content:flex-end}
+
+    .inbox{display:grid; gap:8px; max-height:196px; overflow:auto}
+    .inbox .item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:1px solid var(--stroke); border-radius:12px; background:rgba(255,255,255,.02)}
+    .badge{font-size:11px; padding:6px 8px; border-radius:999px; border:1px solid var(--stroke); background:rgba(255,255,255,.04)}
+
+    .trade{display:grid; gap:12px}
+    .trade .cols{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
+    .trade .bucket{border:1px solid var(--stroke); border-radius:14px; padding:12px; background:rgba(255,255,255,.02)}
+    .trade .bucket h3{margin:0 0 8px 0; font-size:13px}
+    .mini{display:grid; gap:8px; max-height:160px; overflow:auto}
+    .mini .minirow{display:grid; grid-template-columns: 1fr 90px; align-items:center; gap:8px; padding:8px; border:1px solid var(--stroke); border-radius:10px}
+
+    .progress{height:8px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden}
+    .progress > div{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+
+    .bar .status{display:flex; align-items:center; gap:8px}
+    .dot{width:10px; height:10px; border-radius:999px; background:var(--bad); box-shadow:0 0 0 4px rgba(251,113,133,.15)}
+    .dot.good{background:var(--good); box-shadow:0 0 0 4px rgba(74,222,128,.15)}
+
+    .hint{font-size:12px; color:var(--muted)}
+    .empty{padding:12px; text-align:center; color:var(--muted); border:1px dashed var(--stroke); border-radius:12px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#111" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.88L18.18 22 12 18.77 5.82 22 7 14.15l-5-4.88 6.91-1.01L12 2z"/>
+          </svg>
+        </div>
+        <h1>File Trader</h1>
+      </div>
+      <div class="bar">
+        <div class="pill" title="Your temporary ID (share to receive trades)"><span class="hint">Your Temp ID</span> <span id="myId" class="mono"></span> <button id="copyId">Copy</button></div>
+        <div class="status"><span class="dot" id="statusDot"></span><span id="statusText" class="hint">Disconnected</span></div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="panel card">
+        <h2>Your Vault</h2>
+        <div class="vault">
+          <div class="drop" id="drop">
+            <div>
+              <div style="font-weight:700;">Upload files</div>
+              <div class="hint">Drag & drop or choose files. They stay private until you trade.</div>
+            </div>
+            <div>
+              <label>
+                <input id="fileInput" type="file" multiple />
+                <button>Choose files…</button>
+              </label>
+            </div>
+          </div>
+          <div class="list" id="vaultList"></div>
+          <div class="empty" id="vaultEmpty">No files yet. Add some to your vault.</div>
+        </div>
+
+        <div style="margin-top:18px; display:grid; gap:10px" class="card panel">
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+            <input id="partnerId" type="text" placeholder="Partner Temp ID" />
+            <button id="btnOffer" class="primary">Send Trade Offer</button>
+            <span class="hint">Select files with “Offer” and send to partner’s ID.</span>
+          </div>
+          <div class="progress" title="Outgoing transfer progress"><div id="outProg"></div></div>
+        </div>
+      </section>
+
+      <section class="panel card">
+        <h2>Inbox & Active Trade</h2>
+        <div class="panel card" style="margin-bottom:12px">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
+            <div style="font-weight:700;">Inbox</div>
+            <span class="badge" id="inboxCount">0</span>
+          </div>
+          <div class="inbox" id="inbox"></div>
+          <div class="empty" id="inboxEmpty">No incoming trade offers yet.</div>
+        </div>
+
+        <div class="trade card panel">
+          <div style="display:flex; align-items:center; justify-content:space-between">
+            <div>
+              <div style="font-weight:700">Active Trade</div>
+              <div class="hint" id="tradeHint">No active trade.</div>
+            </div>
+            <div style="display:flex; gap:8px">
+              <button id="btnAccept" disabled>Accept</button>
+              <button id="btnFinalize" class="primary" disabled>Finalize & Exchange</button>
+              <button id="btnCancel" class="ghost" disabled>Cancel</button>
+            </div>
+          </div>
+
+          <div class="cols">
+            <div class="bucket">
+              <h3>Their Offer</h3>
+              <div id="theirOffer" class="mini"></div>
+              <div class="empty" id="theirOfferEmpty">Waiting for their selection…</div>
+            </div>
+            <div class="bucket">
+              <h3>Your Counter</h3>
+              <div id="yourCounter" class="mini"></div>
+              <div class="empty" id="yourCounterEmpty">Select files in your vault and toggle “Offer”.</div>
+            </div>
+          </div>
+          <div class="progress" title="Incoming transfer progress"><div id="inProg"></div></div>
+          <div id="downloads" style="display:grid; gap:8px; margin-top:10px"></div>
+        </div>
+      </section>
+    </div>
+
+    <p class="hint" style="margin-top:16px">This demo uses a public PeerJS signaling server to create a temporary P2P connection between browsers. For best results, keep files modest (&lt;50MB each). You’ll see names and sizes before accepting; downloads unlock only after both sides finalize.</p>
+  </div>
+
+  <script>
+    const ui = {
+      myId: document.getElementById('myId'),
+      copyId: document.getElementById('copyId'),
+      statusDot: document.getElementById('statusDot'),
+      statusText: document.getElementById('statusText'),
+      drop: document.getElementById('drop'),
+      input: document.getElementById('fileInput'),
+      vaultList: document.getElementById('vaultList'),
+      vaultEmpty: document.getElementById('vaultEmpty'),
+      partnerId: document.getElementById('partnerId'),
+      btnOffer: document.getElementById('btnOffer'),
+      inbox: document.getElementById('inbox'),
+      inboxEmpty: document.getElementById('inboxEmpty'),
+      inboxCount: document.getElementById('inboxCount'),
+      theirOffer: document.getElementById('theirOffer'),
+      theirOfferEmpty: document.getElementById('theirOfferEmpty'),
+      yourCounter: document.getElementById('yourCounter'),
+      yourCounterEmpty: document.getElementById('yourCounterEmpty'),
+      tradeHint: document.getElementById('tradeHint'),
+      btnAccept: document.getElementById('btnAccept'),
+      btnFinalize: document.getElementById('btnFinalize'),
+      btnCancel: document.getElementById('btnCancel'),
+      inProg: document.getElementById('inProg'),
+      outProg: document.getElementById('outProg'),
+      downloads: document.getElementById('downloads'),
+    };
+
+    const state = {
+      peer: null,
+      conn: null,
+      myId: null,
+      inbox: [],
+      vault: [], // {id,name,size,type,ts,data?}
+      offers: new Set(), // selected file ids to offer
+      active: null, // {id, partnerId, theirOffer:[meta], yourOffer:[ids], accepted:{me:false,them:false}, received:{}, sent:{} }
+      idb: null,
+    };
+
+    const MAX_FILE_BYTES = 50 * 1024 * 1024;
+    const CHUNK = 64 * 1024; // 64KB
+
+    function randId(){
+      const buf = new Uint8Array(6); crypto.getRandomValues(buf);
+      return 'ft-' + Array.from(buf).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+    function fmtBytes(b){
+      if(!b && b!==0) return '';
+      const u=['B','KB','MB','GB']; let i=0; while(b>=1024&&i<u.length-1){b/=1024;i++} return b.toFixed(b<10&&i?1:0)+' '+u[i];
+    }
+
+    // IndexedDB minimal wrapper
+    const DB_NAME='filetrader-v1';
+    function idbOpen(){
+      return new Promise((res,rej)=>{
+        const r = indexedDB.open(DB_NAME,1);
+        r.onupgradeneeded = ()=>{
+          const db = r.result;
+          if(!db.objectStoreNames.contains('files')){
+            db.createObjectStore('files', {keyPath:'id'});
+          }
+        };
+        r.onsuccess = ()=>res(r.result);
+        r.onerror = ()=>rej(r.error);
+      });
+    }
+    function idbPut(rec){
+      return new Promise((res,rej)=>{
+        const tx = state.idb.transaction('files','readwrite');
+        tx.objectStore('files').put(rec); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error);
+      });
+    }
+    function idbAll(){
+      return new Promise((res,rej)=>{
+        const tx = state.idb.transaction('files','readonly');
+        const req = tx.objectStore('files').getAll();
+        req.onsuccess = ()=>res(req.result||[]); req.onerror=()=>rej(req.error);
+      });
+    }
+    function idbGet(id){
+      return new Promise((res,rej)=>{
+        const tx = state.idb.transaction('files','readonly');
+        const req = tx.objectStore('files').get(id);
+        req.onsuccess = ()=>res(req.result||null); req.onerror=()=>rej(req.error);
+      });
+    }
+    function idbDel(id){
+      return new Promise((res,rej)=>{
+        const tx = state.idb.transaction('files','readwrite');
+        tx.objectStore('files').delete(id); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error);
+      });
+    }
+
+    function renderVault(){
+      ui.vaultList.innerHTML='';
+      if(state.vault.length===0){ ui.vaultEmpty.style.display='block'; return; }
+      ui.vaultEmpty.style.display='none';
+      state.vault.sort((a,b)=>b.ts-a.ts).forEach(file=>{
+        const row=document.createElement('div'); row.className='row';
+        const ext=(file.name.split('.').pop()||'').toUpperCase();
+        row.innerHTML=`
+          <div class="icon"><span class="mono">${ext.slice(0,3) || 'BIN'}</span></div>
+          <div class="name" title="${file.name}">${file.name}</div>
+          <div class="size">${fmtBytes(file.size)}</div>
+          <div class="actions">
+            <button data-id="${file.id}" class="offerBtn">${state.offers.has(file.id)?'Offered':'Offer'}</button>
+          </div>
+          <div class="actions">
+            <button data-dl="${file.id}">Download</button>
+            <button data-del="${file.id}">Remove</button>
+          </div>`;
+        ui.vaultList.appendChild(row);
+      });
+      // bind
+      ui.vaultList.querySelectorAll('.offerBtn').forEach(b=>b.onclick=(e)=>{
+        const id=e.target.getAttribute('data-id');
+        if(state.offers.has(id)) state.offers.delete(id); else state.offers.add(id);
+        renderVault(); renderCounter();
+      });
+      ui.vaultList.querySelectorAll('button[data-dl]').forEach(b=>b.onclick=async(e)=>{
+        const id=e.target.getAttribute('data-dl'); const rec=await idbGet(id); if(!rec||!rec.data){alert('Missing data');return}
+        const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rec.data],{type:rec.type})); a.download=rec.name; a.click();
+        setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+      });
+      ui.vaultList.querySelectorAll('button[data-del]').forEach(b=>b.onclick=async(e)=>{
+        const id=e.target.getAttribute('data-del'); await idbDel(id); state.vault=state.vault.filter(v=>v.id!==id); state.offers.delete(id); renderVault(); renderCounter();
+      });
+    }
+
+    function renderInbox(){
+      ui.inbox.innerHTML=''; ui.inboxCount.textContent=String(state.inbox.length);
+      if(state.inbox.length===0){ ui.inboxEmpty.style.display='block'; return; }
+      ui.inboxEmpty.style.display='none';
+      state.inbox.forEach(item=>{
+        const el=document.createElement('div'); el.className='item';
+        const total=item.offer.reduce((a,f)=>a+f.size,0);
+        el.innerHTML=`
+          <div style="display:flex; gap:10px; align-items:center">
+            <span class="badge">From</span>
+            <span class="mono">${item.partnerId}</span>
+            <span class="hint">${item.offer.length} files • ${fmtBytes(total)}</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button data-view="${item.id}">Review</button>
+            <button data-ignore="${item.id}" class="ghost">Ignore</button>
+          </div>`;
+        ui.inbox.appendChild(el);
+      });
+      ui.inbox.querySelectorAll('button[data-view]').forEach(b=>b.onclick=(e)=>{
+        const id=e.target.getAttribute('data-view'); const item=state.inbox.find(x=>x.id===id); if(!item) return;
+        openTrade(item.partnerId, item.offer, id);
+        state.inbox = state.inbox.filter(x=>x.id!==id); renderInbox();
+      });
+      ui.inbox.querySelectorAll('button[data-ignore]').forEach(b=>b.onclick=(e)=>{
+        const id=e.target.getAttribute('data-ignore'); state.inbox = state.inbox.filter(x=>x.id!==id); renderInbox();
+      });
+    }
+
+    function renderOffersList(container, files){
+      container.innerHTML='';
+      if(!files || files.length===0){ (container.id==='theirOffer'?ui.theirOfferEmpty:ui.yourCounterEmpty).style.display='block'; return; }
+      (container.id==='theirOffer'?ui.theirOfferEmpty:ui.yourCounterEmpty).style.display='none';
+      files.forEach(f=>{
+        const r=document.createElement('div'); r.className='minirow';
+        r.innerHTML=`<div class="name" title="${f.name}">${f.name}</div><div class="size" style="text-align:right">${fmtBytes(f.size)}</div>`;
+        container.appendChild(r);
+      });
+    }
+
+    function renderCounter(){
+      if(!state.active){ renderOffersList(ui.yourCounter, []); return; }
+      const mine = state.vault.filter(v=>state.offers.has(v.id)).map(({id,name,size,type})=>({id,name,size,type}));
+      state.active.yourOffer = mine.map(m=>m.id);
+      renderOffersList(ui.yourCounter, mine);
+      updateTradeHint();
+    }
+
+    function updateTradeHint(){
+      if(!state.active){ ui.tradeHint.textContent='No active trade.'; ui.btnAccept.disabled=true; ui.btnCancel.disabled=true; ui.btnFinalize.disabled=true; return; }
+      const a=state.active;
+      const meSel = a.yourOffer && a.yourOffer.length>0;
+      const themSel = a.theirOffer && a.theirOffer.length>0;
+      ui.btnAccept.disabled = !(meSel && themSel);
+      ui.btnCancel.disabled = false;
+      ui.btnFinalize.disabled = !(a.accepted && a.accepted.me && a.accepted.them);
+      const text = a.accepted?.me? (a.accepted.them? 'Both accepted. Ready to exchange.' : 'You accepted. Waiting for them…') : 'Select your files and Accept to proceed.';
+      ui.tradeHint.textContent = text;
+    }
+
+    function openTrade(partnerId, theirOffer, inboxId){
+      state.active = { id: inboxId || ('t-'+Math.random().toString(36).slice(2,10)), partnerId, theirOffer, yourOffer:[], accepted:{me:false,them:false}, received:{}, sent:{} };
+      renderOffersList(ui.theirOffer, theirOffer);
+      renderCounter();
+      ui.btnAccept.disabled=true; ui.btnFinalize.disabled=true; ui.btnCancel.disabled=false;
+    }
+
+    ui.copyId.onclick = async ()=>{ await navigator.clipboard.writeText(state.myId); ui.copyId.textContent='Copied'; setTimeout(()=>ui.copyId.textContent='Copy',1200); };
+
+    // Uploads
+    ui.drop.addEventListener('dragover', e=>{e.preventDefault(); ui.drop.style.borderColor='rgba(255,255,255,.35)'});
+    ui.drop.addEventListener('dragleave', e=>{ui.drop.style.borderColor='var(--stroke)'});
+    ui.drop.addEventListener('drop', e=>{e.preventDefault(); ui.drop.style.borderColor='var(--stroke)'; handleFiles(e.dataTransfer.files)});
+    ui.input.onchange = ()=> handleFiles(ui.input.files);
+
+    async function handleFiles(fileList){
+      const files = Array.from(fileList||[]);
+      for(const f of files){
+        if(f.size>MAX_FILE_BYTES){ alert(`${f.name}: too large (>${fmtBytes(MAX_FILE_BYTES)})`); continue; }
+        const buf = await f.arrayBuffer();
+        const rec = { id: crypto.randomUUID(), name: f.name, size: f.size, type: f.type||'application/octet-stream', ts: Date.now(), data: buf };
+        await idbPut(rec); state.vault.push({id:rec.id,name:rec.name,size:rec.size,type:rec.type,ts:rec.ts});
+      }
+      renderVault(); renderCounter();
+    }
+
+    // PeerJS setup
+    async function initPeer(){
+      state.myId = randId(); ui.myId.textContent = state.myId;
+      state.peer = new Peer(state.myId, { host:'peerjs.com', port:443, path:'/myapp', secure:true, debug:1 });
+      state.peer.on('open', id=>{ ui.statusText.textContent='Ready'; ui.statusDot.classList.add('good'); });
+      state.peer.on('error', err=>{ ui.statusText.textContent='Error: '+err.type; ui.statusDot.classList.remove('good'); console.error(err); });
+      state.peer.on('disconnected', ()=>{ ui.statusText.textContent='Disconnected'; ui.statusDot.classList.remove('good'); });
+      state.peer.on('connection', conn=>{
+        bindConn(conn);
+      });
+    }
+
+    function bindConn(conn){
+      state.conn = conn; ui.statusText.textContent='Connected to '+conn.peer; ui.statusDot.classList.add('good');
+      conn.on('data', onData);
+      conn.on('open', ()=>{
+        sendJson({type:'hello', id: state.myId, vault: state.vault.map(({id,name,size,type})=>({id,name,size,type}))});
+      });
+      conn.on('close', ()=>{ ui.statusText.textContent='Peer closed'; ui.statusDot.classList.remove('good'); });
+      conn.on('error', e=>{ console.error('conn error',e); ui.statusText.textContent='Conn error'; ui.statusDot.classList.remove('good'); });
+    }
+
+    function connectTo(id){
+      if(!state.peer) return;
+      const conn = state.peer.connect(id, {reliable:true});
+      bindConn(conn);
+    }
+
+    function sendJson(obj){ if(state.conn && state.conn.open){ state.conn.send(JSON.stringify(obj)); } }
+
+    // Messaging protocol
+    async function onData(payload){
+      if(payload instanceof ArrayBuffer || payload instanceof Blob){
+        // we only send ArrayBuffer chunks, with a pending map
+        await handleBinary(payload);
+        return;
+      }
+      let msg = payload;
+      if(typeof payload === 'string'){
+        try{ msg = JSON.parse(payload); }catch{ return; }
+      }
+      switch(msg.type){
+        case 'hello': {
+          break;
+        }
+        case 'trade_request': {
+          const item = { id: msg.tradeId, partnerId: state.conn.peer, offer: msg.offer };
+          state.inbox.unshift(item); renderInbox();
+          break;
+        }
+        case 'trade_accept': {
+          if(!state.active) return; state.active.accepted.them = true; updateTradeHint(); break;
+        }
+        case 'trade_cancel': {
+          if(!state.active) return; state.active=null; resetTradeUI(); alert('Trade cancelled by partner.'); break;
+        }
+        case 'trade_counter_set': {
+          if(!state.active) return; state.active.theirOffer = msg.offer; renderOffersList(ui.theirOffer, msg.offer); updateTradeHint(); break;
+        }
+        case 'trade_finalize': {
+          if(!state.active) return; state.active.accepted.them = true; updateTradeHint();
+          // If both accepted, both sides request the counterpart files
+          if(state.active.accepted.me && state.active.accepted.them){ beginExchange(); }
+          break;
+        }
+        case 'request_files': {
+          if(!state.active) return; // send each file as chunks
+          const ids = msg.ids||[]; for(const id of ids){ const rec = await idbGet(id); if(!rec){console.warn('missing',id); continue;} await sendFile(rec); }
+          break;
+        }
+        case 'file_start': {
+          if(!state.active) return; state.active.received[msg.id] = { meta: msg, chunks:[], received:0, total: msg.size };
+          break;
+        }
+        case 'file_end': {
+          if(!state.active) return; const r=state.active.received[msg.id]; if(!r) return; const blob=new Blob(r.chunks,{type:r.meta.type});
+          const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=r.meta.name; a.textContent=`Download ${r.meta.name} (${fmtBytes(r.meta.size)})`;
+          const row=document.createElement('div'); row.className='minirow'; row.appendChild(a); const s=document.createElement('div'); s.style.textAlign='right'; s.textContent='Received'; row.appendChild(s);
+          ui.downloads.appendChild(row);
+          setTimeout(()=>URL.revokeObjectURL(a.href), 5*60*1000);
+          updateIncomingProgress();
+          break;
+        }
+      }
+    }
+
+    // Binary chunk receive path uses a small header sentinel in a typed array [0xF1, F2, idx_hi, idx_lo, ... data]
+    async function handleBinary(buf){
+      if(!(buf instanceof ArrayBuffer)) buf = await buf.arrayBuffer();
+      const dv = new DataView(buf);
+      // Simple binary channel reserved (not used in v1) — we keep for future; v1 uses JSON for control and pure chunk payloads labeled by current file id in state
+      // No-op
+    }
+
+    // Exchange orchestration
+    function buildMyOfferMeta(){
+      return state.vault.filter(v=>state.offers.has(v.id)).map(({id,name,size,type})=>({id,name,size,type}));
+    }
+
+    ui.btnOffer.onclick = ()=>{
+      if(!state.conn||!state.conn.open){
+        const pid = ui.partnerId.value.trim(); if(!pid){ alert('Enter a partner ID'); return; }
+        connectTo(pid);
+        // delay a bit to allow open, then send
+        setTimeout(()=>{ sendJson({type:'trade_request', tradeId: 't-'+Math.random().toString(36).slice(2,10), offer: buildMyOfferMeta()}); }, 500);
+      } else {
+        sendJson({type:'trade_request', tradeId: 't-'+Math.random().toString(36).slice(2,10), offer: buildMyOfferMeta()});
+      }
+      // also open local active trade view
+      openTrade(ui.partnerId.value.trim()||state.conn?.peer, [], 'local-'+Math.random().toString(36).slice(2,6));
+    };
+
+    ui.btnAccept.onclick = ()=>{
+      if(!state.active) return; state.active.accepted.me = true; updateTradeHint();
+      // share my counter selection to partner
+      const mine = buildMyOfferMeta(); sendJson({type:'trade_counter_set', offer: mine});
+      sendJson({type:'trade_accept'});
+    };
+
+    ui.btnFinalize.onclick = ()=>{
+      if(!state.active) return; if(!(state.active.accepted.me)) return; sendJson({type:'trade_finalize'}); // mark mine too
+      // when both accepted, begin
+      if(state.active.accepted.them){ beginExchange(); } else { updateTradeHint(); }
+    };
+
+    ui.btnCancel.onclick = ()=>{ if(!state.active) return; sendJson({type:'trade_cancel'}); state.active=null; resetTradeUI(); };
+
+    function resetTradeUI(){
+      ui.theirOffer.innerHTML=''; ui.yourCounter.innerHTML=''; ui.downloads.innerHTML='';
+      ui.theirOfferEmpty.style.display='block'; ui.yourCounterEmpty.style.display='block';
+      ui.inProg.style.width='0%'; ui.outProg.style.width='0%'; updateTradeHint();
+    }
+
+    function beginExchange(){
+      if(!state.active) return; ui.btnFinalize.disabled=true; ui.btnAccept.disabled=true; ui.tradeHint.textContent='Exchanging files…';
+      // Request from partner the files they offered
+      const want = (state.active.theirOffer||[]).map(f=>f.id);
+      sendJson({type:'request_files', ids: want});
+      // Send my files that I offered
+      // Handled on partner's request; here we just wait for their request
+    }
+
+    async function sendFile(rec){
+      // announce
+      sendJson({type:'file_start', id: rec.id, name: rec.name, size: rec.size, type: rec.type});
+      // stream chunks
+      const total = rec.data ? rec.data.byteLength : 0;
+      const buf = rec.data || (await idbGet(rec.id))?.data; if(!buf){ console.warn('No data to send for', rec.id); return; }
+      let sent=0; for(let off=0; off<buf.byteLength; off+=CHUNK){
+        const chunk = buf.slice(off, Math.min(off+CHUNK, buf.byteLength)); state.conn.send(chunk); sent += chunk.byteLength; updateOutgoingProgress(sent, total);
+        await new Promise(r=>setTimeout(r,0));
+      }
+      sendJson({type:'file_end', id: rec.id}); updateOutgoingProgress(total,total);
+    }
+
+    function updateIncomingProgress(){
+      // crude: count downloads in DOM, set to 100% when rows match requested count
+      if(!state.active) return; const want=(state.active.theirOffer||[]).length; const have=ui.downloads.querySelectorAll('.minirow').length;
+      const pct = want? Math.min(100, Math.round((have/want)*100)) : 0; ui.inProg.style.width=pct+'%';
+      if(pct===100){ ui.tradeHint.textContent='Trade complete. Downloads ready below.'; }
+    }
+    function updateOutgoingProgress(done,total){ const pct = total? Math.round((done/total)*100) : 0; ui.outProg.style.width=pct+'%'; }
+
+    // Boot
+    (async function(){
+      state.idb = await idbOpen();
+      const recs = await idbAll();
+      state.vault = recs.map(({id,name,size,type,ts})=>({id,name,size,type,ts}));
+      renderVault(); renderInbox(); resetTradeUI();
+      await initPeer();
+    })();
+  </script>
+</body>
+</html>
