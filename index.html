@@ -3,318 +3,321 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>File Trader — P2P</title>
+  <title>File Trader — Adopt‑Style</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script>
   <style>
     :root{
-      --bg-a:#0b0b12; --bg-b:#14172a; --panel:rgba(24,22,36,.55); --panel-strong:rgba(24,22,36,.78);
-      --stroke:rgba(255,255,255,.12); --ink:#f7f6f9; --muted:#b9b3c6; --accent:#9a88ff; --accent-2:#ff85d6;
-      --good:#4ade80; --warn:#fbbf24; --bad:#fb7185; --radius:16px;
-      --shadow: 0 12px 38px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+      --ink:#111213; --text:#0f1020; --white:#fff;
+      --bg:#0e0a15; --bg2:#15142a;
+      --pink:#ff78c8; --cyan:#6be7ff; --lime:#7DFF9F; --amber:#ffd17d; --red:#ff7d9c;
+      --stroke:rgba(255,255,255,.12);
+      --glass: rgba(255,255,255,.08);
+      --glass-strong: rgba(255,255,255,.16);
+      --radius: 18px; --slot: 88px;
+      --shadow: 0 14px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{margin:0; color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    body{
+      margin:0; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:#f7f6f9;
       background:
-        radial-gradient(1000px 600px at 10% 0%, #231a2d 0%, transparent 60%),
-        radial-gradient(1000px 700px at 90% 10%, #172039 0%, transparent 60%),
-        linear-gradient(160deg,var(--bg-a),var(--bg-b));
+        radial-gradient(1200px 700px at 15% 10%, #281b36 0%, transparent 60%),
+        radial-gradient(1100px 800px at 85% 15%, #183049 0%, transparent 60%),
+        linear-gradient(160deg,var(--bg),var(--bg2));
     }
-    .container{max-width:1200px; margin:24px auto; padding:0 16px}
-    header{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:16px}
+    .container{max-width:1100px; margin:24px auto; padding:0 16px}
+
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px}
     .brand{display:flex; gap:12px; align-items:center}
-    .logo{width:42px; height:42px; border-radius:12px; background:linear-gradient(145deg,var(--accent),var(--accent-2)); box-shadow:var(--shadow); display:grid; place-items:center}
-    .brand h1{margin:0; font-size:18px; font-weight:800; letter-spacing:.3px}
-    .bar{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
-
-    .card{background:var(--panel); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow); backdrop-filter: blur(10px)}
-    .panel{padding:16px}
-    .pill{display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--stroke); background:var(--panel-strong)}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:13px}
-
-    button{cursor:pointer; border:1px solid var(--stroke); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); color:var(--ink); padding:10px 14px; border-radius:12px; box-shadow:var(--shadow); transition: transform .12s ease, opacity .2s ease}
-    button:hover{transform: translateY(-1px)}
-    button:active{transform: translateY(0)}
-    button.primary{background:linear-gradient(180deg, var(--accent), var(--accent-2)); border:none; color:#111; font-weight:800}
-    button.ghost{background:transparent}
-    button:disabled{opacity:.55; cursor:not-allowed}
-    input[type=text]{background:rgba(255,255,255,.06); border:1px solid var(--stroke); border-radius:12px; padding:10px 12px; color:var(--ink); outline:none; min-width:260px}
-
-    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:16px}
-    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
-
-    h2{margin:0 0 12px 0; font-size:15px; font-weight:800; letter-spacing:.3px}
-    .sub{color:var(--muted); font-size:12px}
-
-    .drop{border:1px dashed var(--stroke); border-radius:14px; padding:18px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:rgba(255,255,255,.03)}
-    .drop input{display:none}
-
-    .list{display:grid; gap:8px; max-height:360px; overflow:auto; padding-right:4px}
-    .row{display:grid; grid-template-columns: 32px 1fr 100px 210px; gap:10px; align-items:center; padding:10px; border:1px solid var(--stroke); border-radius:12px; background:rgba(255,255,255,.02)}
-    .icon{width:28px; height:28px; display:grid; place-items:center; border-radius:8px; background:rgba(255,255,255,.06)}
-    .name{font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-    .size{color:var(--muted); font-size:12px}
-    .actions{display:flex; gap:8px; justify-content:flex-end}
-
-    .inbox{display:grid; gap:8px; max-height:196px; overflow:auto}
-    .inbox .item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border:1px solid var(--stroke); border-radius:12px; background:rgba(255,255,255,.02)}
-    .badge{font-size:11px; padding:6px 8px; border-radius:999px; border:1px solid var(--stroke); background:rgba(255,255,255,.04)}
-
-    .trade .cols{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
-    @media (max-width: 760px){ .trade .cols{grid-template-columns:1fr} }
-    .bucket{border:1px solid var(--stroke); border-radius:14px; padding:12px; background:rgba(255,255,255,.02)}
-    .bucket h3{margin:0 0 8px 0; font-size:13px}
-    .mini{display:grid; gap:8px; max-height:160px; overflow:auto}
-    .minirow{display:grid; grid-template-columns: 1fr 110px; align-items:center; gap:8px; padding:8px; border:1px solid var(--stroke); border-radius:10px}
-
-    .progress{height:8px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden}
-    .progress > div{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .2s ease}
+    .badge{background:linear-gradient(90deg,var(--pink),var(--cyan)); color:#12121a; font-weight:800; padding:10px 14px; border-radius:14px; box-shadow:var(--shadow)}
+    .badge span{opacity:.9}
 
     .status{display:flex; align-items:center; gap:8px}
-    .dot{width:10px; height:10px; border-radius:999px; background:var(--bad); box-shadow:0 0 0 4px rgba(251,113,133,.15); transition: all .3s ease}
-    .dot.good{background:var(--good); box-shadow:0 0 0 6px rgba(74,222,128,.18)}
+    .dot{width:12px; height:12px; border-radius:999px; background:var(--red); box-shadow:0 0 0 6px rgba(255,125,156,.18); transition: all .3s ease}
+    .dot.good{background:var(--lime); box-shadow:0 0 0 8px rgba(125,255,159,.18)}
+    .hint{font-size:12px; opacity:.75}
 
-    .hint{font-size:12px; color:var(--muted)}
-    .empty{padding:12px; text-align:center; color:var(--muted); border:1px dashed var(--stroke); border-radius:12px}
+    .card{background:var(--glass); border:1px solid var(--stroke); border-radius:var(--radius); backdrop-filter: blur(12px); box-shadow:var(--shadow)}
+    .panel{padding:16px}
 
-    .gate{display:grid; gap:12px; animation: floatIn .45s ease both}
+    .gate{display:grid; gap:12px; animation: pop .35s ease both}
+    .gate h1{margin:0; font-size:22px}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    input[type=text]{background:rgba(255,255,255,.09); border:1px solid var(--stroke); border-radius:12px; padding:10px 12px; color:#fff; outline:none; min-width:260px}
+    button{cursor:pointer; border:1px solid var(--stroke); color:#101114; font-weight:800; padding:11px 16px; border-radius:14px; box-shadow:var(--shadow); transition:transform .12s ease, opacity .2s ease}
+    button:hover{transform:translateY(-1px)}
+    button.primary{background:linear-gradient(90deg,var(--pink),var(--cyan)); border:none}
+    button.good{background:linear-gradient(90deg,#87f7a9,#b6ffcf); border:none}
+    button.warn{background:linear-gradient(90deg,#ffd17d,#ffe9b6); border:none}
+    button.ghost{background:transparent; color:#e8e8ee}
+    button:disabled{opacity:.5; cursor:not-allowed}
 
-    /* reveal-on-connect */
-    .tradeArea{opacity:.2; filter:saturate(.5); pointer-events:none; transition: all .4s ease}
-    body.connected .tradeArea{opacity:1; filter:none; pointer-events:auto}
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:16px}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
 
-    /* micro-animations */
-    @keyframes floatIn{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
-    @keyframes pulseGlow{0%{box-shadow:0 0 0 0 rgba(154,136,255,.4)} 100%{box-shadow:0 0 0 14px rgba(154,136,255,0)}}
-    .pulse{animation: pulseGlow 1.2s ease-out 2}
+    h2{margin:0 0 12px 0; font-size:16px; font-weight:800; letter-spacing:.3px}
 
-    /* toast */
+    /* Adopt‑style trade board */
+    .tradeboard{display:grid; grid-template-columns: 1fr 120px 1fr; gap:16px; align-items:center}
+    .col{background:var(--glass); border:1px solid var(--stroke); border-radius:18px; padding:14px}
+    .col h3{margin:0 0 8px 0; font-size:14px; font-weight:800}
+    .slots{display:grid; grid-template-columns: repeat(3, var(--slot)); grid-auto-rows: var(--slot); gap:10px; justify-content:center}
+    .slot{position:relative; border:2px dashed rgba(255,255,255,.22); border-radius:12px; display:grid; place-items:center; background:rgba(255,255,255,.04)}
+    .slot.fill{border-style:solid; border-color:rgba(255,255,255,.3); background:rgba(255,255,255,.06)}
+    .chip{max-width:calc(var(--slot) - 16px); text-align:center}
+    .chip .name{font-size:12px; font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .chip .meta{font-size:11px; opacity:.75}
+    .x{position:absolute; top:6px; right:6px; background:rgba(0,0,0,.5); color:#fff; border:none; border-radius:8px; padding:4px 6px; font-size:11px}
+
+    .middle{display:grid; gap:10px; justify-items:center}
+    .stage{font-size:11px; opacity:.8}
+    .big{font-size:28px; font-weight:900; letter-spacing:.6px; background:linear-gradient(90deg,var(--pink),var(--cyan)); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .checks{display:grid; gap:8px}
+    .checks button{width:140px}
+
+    .vault{background:var(--glass); border:1px solid var(--stroke); border-radius:18px; padding:14px}
+    .vault h3{margin:0 0 8px 0; font-size:14px; font-weight:800}
+    .drop{border:1px dashed var(--stroke); border-radius:14px; padding:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; background:rgba(255,255,255,.04)}
+    .list{display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:10px; margin-top:10px; max-height:280px; overflow:auto}
+    .cardfile{border:1px solid var(--stroke); border-radius:14px; padding:10px; background:rgba(255,255,255,.05); display:grid; gap:6px}
+    .cardfile .title{font-weight:800; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .cardfile .meta{font-size:12px; opacity:.75}
+
+    .progress{height:8px; border-radius:999px; background:rgba(255,255,255,.06); overflow:hidden}
+    .progress > div{height:100%; width:0%; background:linear-gradient(90deg,var(--pink),var(--cyan)); transition:width .2s ease}
+
     .toast{position:fixed; right:16px; bottom:16px; display:grid; gap:8px; z-index:30}
-    .toast .t{background:var(--panel-strong); border:1px solid var(--stroke); padding:10px 12px; border-radius:12px; box-shadow:var(--shadow); animation: floatIn .3s ease both}
+    .toast .t{background:var(--glass-strong); border:1px solid var(--stroke); padding:10px 12px; border-radius:12px; box-shadow:var(--shadow); animation: pop .3s ease both}
+
+    .dim{opacity:.35; filter:saturate(.7); pointer-events:none}
+
+    @keyframes pop{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
   </style>
 </head>
 <body>
   <div class="container">
     <header>
       <div class="brand">
-        <div class="logo">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#111" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.88L18.18 22 12 18.77 5.82 22 7 14.15l-5-4.88 6.91-1.01L12 2z"/></svg>
-        </div>
-        <h1>File Trader</h1>
+        <div class="badge"><span>File Trader</span></div>
       </div>
-      <div class="bar">
-        <div class="pill" title="Your temporary ID (share to receive trades)"><span class="hint">Your Temp ID</span> <span id="myId" class="mono"></span> <button id="copyId">Copy</button></div>
-        <div class="status"><span class="dot" id="statusDot"></span><span id="statusText" class="hint">Not connected</span></div>
+      <div class="status">
+        <div class="pill" style="display:flex; gap:8px; align-items:center; border:1px solid var(--stroke); border-radius:12px; padding:8px 10px; background:var(--glass)">
+          <span class="hint">Your Temp ID</span>
+          <span id="myId" class="hint" style="font-family:ui-monospace,Consolas,Menlo,monospace">—</span>
+          <button id="copyId" class="ghost">Copy</button>
+        </div>
+        <div class="dot" id="statusDot"></div>
+        <span id="statusText" class="hint">Not connected</span>
       </div>
     </header>
 
-    <!-- Connection gate -->
-    <section class="card panel gate" id="connectCard">
-      <h2>Connect to a Partner</h2>
-      <div class="sub">Share your Temp ID with them, then enter their ID below and connect. Trading UI unlocks once connected.</div>
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+    <!-- Gate -->
+    <section id="gate" class="card panel gate">
+      <h1>Connect to a Partner</h1>
+      <div class="row">
         <input id="partnerId" type="text" placeholder="Partner Temp ID" />
-        <button id="btnConnect" class="primary pulse">Connect</button>
+        <button id="btnConnect" class="primary">Connect</button>
         <button id="btnDisconnect" class="ghost" disabled>Disconnect</button>
+      </div>
+      <div class="hint">Share your Temp ID with them. Trading unlocks when connected.</div>
+    </section>
+
+    <!-- Trade board -->
+    <section id="board" class="card panel" style="margin-top:16px">
+      <div class="tradeboard" id="tradeBoard">
+        <div class="col">
+          <h3>Your Offer</h3>
+          <div id="mySlots" class="slots"></div>
+        </div>
+        <div class="middle">
+          <div class="big">TRADE</div>
+          <div id="stageTxt" class="stage">Pick items → Ready → Confirm</div>
+          <div class="checks">
+            <button id="btnReady" class="good" disabled>Ready ✓</button>
+            <button id="btnConfirm" class="warn" disabled>Confirm</button>
+            <button id="btnCancel" class="ghost" disabled>Cancel</button>
+          </div>
+          <div class="progress" title="Transfer progress" style="width:160px"><div id="progressBar"></div></div>
+        </div>
+        <div class="col">
+          <h3>Their Offer</h3>
+          <div id="theirSlots" class="slots"></div>
+        </div>
       </div>
     </section>
 
-    <div class="grid tradeArea" id="tradeArea">
-      <section class="panel card">
-        <h2>Your Vault</h2>
-        <div class="drop" id="drop">
-          <div>
-            <div style="font-weight:800">Upload files</div>
-            <div class="sub">Drag & drop or choose files. They stay private until you trade.</div>
-          </div>
-          <div>
-            <label>
-              <input id="fileInput" type="file" multiple />
-              <button>Choose files…</button>
-            </label>
-          </div>
+    <!-- Vault -->
+    <section id="vault" class="vault" style="margin-top:16px">
+      <h3>Your Vault</h3>
+      <div class="drop" id="drop">
+        <div>
+          <div style="font-weight:800">Upload files</div>
+          <div class="hint">Drag & drop or choose files. They stay private until the trade completes.</div>
         </div>
-        <div class="list" id="vaultList"></div>
-        <div class="empty" id="vaultEmpty">No files yet. Add some to your vault.</div>
-
-        <div style="margin-top:18px; display:grid; gap:10px" class="card panel">
-          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
-            <button id="btnOffer" class="primary" disabled>Send Trade Offer</button>
-            <span class="hint">Select files with “Offer”, then send.</span>
-          </div>
-          <div class="progress" title="Outgoing transfer progress"><div id="outProg"></div></div>
+        <div>
+          <label>
+            <input id="fileInput" type="file" multiple style="display:none" />
+            <button class="primary" id="chooseBtn">Choose files…</button>
+          </label>
         </div>
-      </section>
-
-      <section class="panel card">
-        <h2>Inbox & Active Trade</h2>
-        <div class="panel card" style="margin-bottom:12px">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px"><div style="font-weight:800">Inbox</div><span class="badge" id="inboxCount">0</span></div>
-          <div class="inbox" id="inbox"></div>
-          <div class="empty" id="inboxEmpty">No incoming trade offers yet.</div>
-        </div>
-
-        <div class="trade card panel">
-          <div style="display:flex; align-items:center; justify-content:space-between">
-            <div>
-              <div style="font-weight:800">Active Trade</div>
-              <div class="hint" id="tradeHint">No active trade.</div>
-            </div>
-            <div style="display:flex; gap:8px">
-              <button id="btnAccept" disabled>Accept</button>
-              <button id="btnFinalize" class="primary" disabled>Finalize & Exchange</button>
-              <button id="btnCancel" class="ghost" disabled>Cancel</button>
-            </div>
-          </div>
-          <div class="cols">
-            <div class="bucket"><h3>Their Offer</h3><div id="theirOffer" class="mini"></div><div class="empty" id="theirOfferEmpty">Waiting for their selection…</div></div>
-            <div class="bucket"><h3>Your Counter</h3><div id="yourCounter" class="mini"></div><div class="empty" id="yourCounterEmpty">Select files in your vault and toggle “Offer”.</div></div>
-          </div>
-          <div class="progress" title="Incoming transfer progress"><div id="inProg"></div></div>
-          <div id="downloads" style="display:grid; gap:8px; margin-top:10px"></div>
-        </div>
-      </section>
-    </div>
+      </div>
+      <div id="vaultList" class="list"></div>
+      <div id="vaultEmpty" class="hint" style="text-align:center; padding:10px">No files yet. Add some to your vault.</div>
+    </section>
   </div>
 
   <div id="toast" class="toast"></div>
 
   <script>
     const ui={
-      connectCard:document.getElementById('connectCard'), tradeArea:document.getElementById('tradeArea'),
-      myId:document.getElementById('myId'), copyId:document.getElementById('copyId'), statusDot:document.getElementById('statusDot'), statusText:document.getElementById('statusText'),
-      partnerId:document.getElementById('partnerId'), btnConnect:document.getElementById('btnConnect'), btnDisconnect:document.getElementById('btnDisconnect'),
-      drop:document.getElementById('drop'), input:document.getElementById('fileInput'), vaultList:document.getElementById('vaultList'), vaultEmpty:document.getElementById('vaultEmpty'),
-      btnOffer:document.getElementById('btnOffer'), inbox:document.getElementById('inbox'), inboxEmpty:document.getElementById('inboxEmpty'), inboxCount:document.getElementById('inboxCount'),
-      theirOffer:document.getElementById('theirOffer'), theirOfferEmpty:document.getElementById('theirOfferEmpty'), yourCounter:document.getElementById('yourCounter'), yourCounterEmpty:document.getElementById('yourCounterEmpty'),
-      tradeHint:document.getElementById('tradeHint'), btnAccept:document.getElementById('btnAccept'), btnFinalize:document.getElementById('btnFinalize'), btnCancel:document.getElementById('btnCancel'),
-      inProg:document.getElementById('inProg'), outProg:document.getElementById('outProg'), downloads:document.getElementById('downloads'), toast:document.getElementById('toast'),
+      myId:$('#myId'), copyId:$('#copyId'), statusDot:$('#statusDot'), statusText:$('#statusText'),
+      partnerId:$('#partnerId'), btnConnect:$('#btnConnect'), btnDisconnect:$('#btnDisconnect'),
+      gate:$('#gate'), board:$('#board'), vault:$('#vault'),
+      mySlots:$('#mySlots'), theirSlots:$('#theirSlots'),
+      btnReady:$('#btnReady'), btnConfirm:$('#btnConfirm'), btnCancel:$('#btnCancel'),
+      progress:$('#progressBar'), stageTxt:$('#stageTxt'),
+      drop:$('#drop'), fileInput:$('#fileInput'), chooseBtn:$('#chooseBtn'),
+      vaultList:$('#vaultList'), vaultEmpty:$('#vaultEmpty'), toast:$('#toast')
     };
 
-    const state={
-      peer:null, conn:null, myId:null,
-      inbox:[], vault:[], offers:new Set(), active:null,
-      idb:null, currentRxId:null
+    const SLOTS=9, CHUNK=64*1024, MAX_FILE=50*1024*1024;
+    const state={ peer:null, conn:null, myId:null, idb:null,
+      vault:[], offers:[], // array of file ids (max 9)
+      theirOffer:[], accepted:{me:false,them:false}, confirmed:{me:false,them:false},
+      rx:{ id:null, total:0, done:0, chunks:[] }
     };
 
-    const MAX_FILE_BYTES = 50*1024*1024; const CHUNK = 64*1024;
-
-    function toast(msg){ const el=document.createElement('div'); el.className='t'; el.textContent=msg; ui.toast.appendChild(el); setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(6px)'; setTimeout(()=>el.remove(),300); }, 2200); }
-
-    function randId(){ const b=new Uint8Array(6); crypto.getRandomValues(b); return 'ft-'+Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join(''); }
+    function $(q){return document.querySelector(q)}
+    function el(tag,attrs={},children=[]){ const e=document.createElement(tag); for(const k in attrs){ if(k==='class') e.className=attrs[k]; else if(k==='html') e.innerHTML=attrs[k]; else e.setAttribute(k, attrs[k]); } children.forEach(c=>e.appendChild(c)); return e; }
     function fmtBytes(b){ const u=['B','KB','MB','GB']; let i=0; while(b>=1024&&i<u.length-1){b/=1024;i++} return b.toFixed(b<10&&i?1:0)+' '+u[i]; }
+    function toast(msg){ const t=el('div',{class:'t',html:msg}); ui.toast.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateY(6px)'; setTimeout(()=>t.remove(),300); }, 2200); }
 
     // IndexedDB
-    const DB='filetrader-v1';
+    const DB='filetrader-v2';
     function idbOpen(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB,1); r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains('files')) db.createObjectStore('files',{keyPath:'id'}); }; r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
     function idbPut(rec){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readwrite'); tx.objectStore('files').put(rec); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
-    function idbAll(){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readonly'); const q=tx.objectStore('files').getAll(); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>rej(q.error); }); }
     function idbGet(id){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readonly'); const q=tx.objectStore('files').get(id); q.onsuccess=()=>res(q.result||null); q.onerror=()=>rej(q.error); }); }
-    function idbDel(id){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readwrite'); tx.objectStore('files').delete(id); tx.oncomplete=()=>res(); tx.onerror=()=>rej(tx.error); }); }
+    function idbAll(){ return new Promise((res,rej)=>{ const tx=state.idb.transaction('files','readonly'); const q=tx.objectStore('files').getAll(); q.onsuccess=()=>res(q.result||[]); q.onerror=()=>rej(q.error); }); }
 
-    function renderVault(){ ui.vaultList.innerHTML=''; if(state.vault.length===0){ ui.vaultEmpty.style.display='block'; } else { ui.vaultEmpty.style.display='none'; }
-      state.vault.sort((a,b)=>b.ts-a.ts).forEach(file=>{ const row=document.createElement('div'); row.className='row'; const ext=(file.name.split('.').pop()||'').toUpperCase();
-        row.innerHTML=`
-          <div class="icon"><span class="mono">${ext.slice(0,3)||'BIN'}</span></div>
-          <div class="name" title="${file.name}">${file.name}</div>
-          <div class="size">${fmtBytes(file.size)}</div>
-          <div class="actions">
-            <button data-id="${file.id}" class="offerBtn">${state.offers.has(file.id)?'Offered':'Offer'}</button>
-            <button data-dl="${file.id}">Download</button>
-            <button data-del="${file.id}" class="ghost">Remove</button>
-          </div>`; ui.vaultList.appendChild(row);
+    // Render slots
+    function renderSlots(){
+      ui.mySlots.innerHTML=''; ui.theirSlots.innerHTML='';
+      const mine = state.vault.filter(v=>state.offers.includes(v.id));
+      const theirs = state.theirOffer;
+      for(let i=0;i<SLOTS;i++){
+        const f=mine[i];
+        const slot=el('div',{class:'slot'+(f?' fill':'')});
+        if(f){ slot.appendChild(el('div',{class:'chip',html:`<div class="name" title="${f.name}">${f.name}</div><div class="meta">${fmtBytes(f.size)}</div>`}));
+          const x=el('button',{class:'x'},[]); x.textContent='×'; x.onclick=()=>removeFromOffer(f.id); slot.appendChild(x);
+        }
+        ui.mySlots.appendChild(slot);
+      }
+      for(let i=0;i<SLOTS;i++){
+        const f=theirs[i];
+        const slot=el('div',{class:'slot'+(f?' fill':'')});
+        if(f){ slot.appendChild(el('div',{class:'chip',html:`<div class="name" title="${f.name}">${f.name}</div><div class="meta">${fmtBytes(f.size)}</div>`})); }
+        ui.theirSlots.appendChild(slot);
+      }
+      refreshStage();
+    }
+
+    function refreshStage(){
+      ui.btnReady.disabled = !(state.offers.length>0 && state.theirOffer.length>0);
+      ui.btnConfirm.disabled = !(state.accepted.me && state.accepted.them);
+      ui.btnCancel.disabled = !!(state.conn && state.conn.open);
+      ui.stageTxt.textContent = state.confirmed.me && state.confirmed.them ? 'Confirming…' : (state.accepted.me ? (state.accepted.them?'Both ready — Confirm to trade':'You are ready — waiting for them…') : 'Pick items → Ready → Confirm');
+    }
+
+    function addToOffer(id){ if(state.offers.includes(id)) return; if(state.offers.length>=SLOTS){ toast('Offer slots full'); return; } state.offers.push(id); changedMyOffer(); }
+    function removeFromOffer(id){ state.offers = state.offers.filter(x=>x!==id); changedMyOffer(); }
+
+    function changedMyOffer(){
+      // Any change resets accept/confirm for both sides
+      state.accepted.me=false; state.accepted.them=false; state.confirmed.me=false; state.confirmed.them=false;
+      renderSlots(); sendJson({type:'trade_counter_set', offer: buildMyOfferMeta()});
+    }
+
+    function buildMyOfferMeta(){ return state.vault.filter(v=>state.offers.includes(v.id)).map(({id,name,size,type})=>({id,name,size,type})); }
+
+    // Vault rendering
+    function renderVault(){ ui.vaultList.innerHTML=''; const empty = state.vault.length===0; ui.vaultEmpty.style.display = empty? 'block':'none';
+      state.vault.sort((a,b)=>b.ts-a.ts).forEach(file=>{
+        const card=el('div',{class:'cardfile'});
+        card.appendChild(el('div',{class:'title',html:file.name}));
+        card.appendChild(el('div',{class:'meta',html:fmtBytes(file.size)}));
+        const row=el('div',{class:'row'});
+        const add=el('button',{class:'primary'}); add.textContent = state.offers.includes(file.id)?'In Offer':'Add to Offer';
+        add.onclick=()=>{ if(state.offers.includes(file.id)) removeFromOffer(file.id); else addToOffer(file.id); renderVault(); };
+        const dl=el('button',{class:'ghost'}); dl.textContent='Download'; dl.onclick=async()=>{ const rec=await idbGet(file.id); if(!rec||!rec.data){ toast('Missing data'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rec.data],{type:rec.type})); a.download=rec.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 3000); };
+        row.appendChild(add); row.appendChild(dl); card.appendChild(row);
+        ui.vaultList.appendChild(card);
       });
-      ui.vaultList.querySelectorAll('.offerBtn').forEach(b=>b.onclick=(e)=>{ const id=e.target.getAttribute('data-id'); if(state.offers.has(id)) state.offers.delete(id); else state.offers.add(id); renderVault(); renderCounter(); });
-      ui.vaultList.querySelectorAll('button[data-dl]').forEach(b=>b.onclick=async(e)=>{ const id=e.target.getAttribute('data-dl'); const rec=await idbGet(id); if(!rec||!rec.data){ toast('Missing data'); return; } const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([rec.data],{type:rec.type})); a.download=rec.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 3000); });
-      ui.vaultList.querySelectorAll('button[data-del]').forEach(b=>b.onclick=async(e)=>{ const id=e.target.getAttribute('data-del'); await idbDel(id); state.vault=state.vault.filter(v=>v.id!==id); state.offers.delete(id); renderVault(); renderCounter(); });
     }
 
-    function renderInbox(){ ui.inbox.innerHTML=''; ui.inboxCount.textContent=String(state.inbox.length); if(state.inbox.length===0){ ui.inboxEmpty.style.display='block'; return; } ui.inboxEmpty.style.display='none';
-      state.inbox.forEach(item=>{ const el=document.createElement('div'); el.className='item'; const total=item.offer.reduce((a,f)=>a+f.size,0);
-        el.innerHTML=`<div style="display:flex; gap:10px; align-items:center"><span class="badge">From</span><span class="mono">${item.partnerId}</span><span class="hint">${item.offer.length} files • ${fmtBytes(total)}</span></div>
-        <div style="display:flex; gap:8px"><button data-view="${item.id}">Review</button><button data-ignore="${item.id}" class="ghost">Ignore</button></div>`;
-        ui.inbox.appendChild(el);
-      });
-      ui.inbox.querySelectorAll('button[data-view]').forEach(b=>b.onclick=(e)=>{ const id=e.target.getAttribute('data-view'); const item=state.inbox.find(x=>x.id===id); if(!item) return; openTrade(item.partnerId,item.offer,id); state.inbox=state.inbox.filter(x=>x.id!==id); renderInbox(); });
-      ui.inbox.querySelectorAll('button[data-ignore]').forEach(b=>b.onclick=(e)=>{ const id=e.target.getAttribute('data-ignore'); state.inbox=state.inbox.filter(x=>x.id!==id); renderInbox(); });
+    // File input
+    ui.chooseBtn.addEventListener('click',()=>ui.fileInput.click());
+    ui.fileInput.addEventListener('change',()=>handleFiles(ui.fileInput.files));
+    ui.drop.addEventListener('dragover',e=>{e.preventDefault();});
+    ui.drop.addEventListener('drop',e=>{e.preventDefault(); handleFiles(e.dataTransfer.files)});
+
+    async function handleFiles(list){ const files = Array.from(list||[]);
+      for(const f of files){ if(f.size>MAX_FILE){ toast(`${f.name}: too large (> ${fmtBytes(MAX_FILE)})`); continue; } const buf=await f.arrayBuffer(); const rec={ id: crypto.randomUUID(), name:f.name, size:f.size, type:f.type||'application/octet-stream', ts:Date.now(), data:buf }; await idbPut(rec); state.vault.push({id:rec.id,name:rec.name,size:rec.size,type:rec.type,ts:rec.ts}); }
+      renderVault(); renderSlots();
     }
 
-    function renderOffersList(container, files){ container.innerHTML=''; if(!files||files.length===0){ (container.id==='theirOffer'?ui.theirOfferEmpty:ui.yourCounterEmpty).style.display='block'; return; } (container.id==='theirOffer'?ui.theirOfferEmpty:ui.yourCounterEmpty).style.display='none';
-      files.forEach(f=>{ const r=document.createElement('div'); r.className='minirow'; r.innerHTML=`<div class="name" title="${f.name}">${f.name}</div><div class="size" style="text-align:right">${fmtBytes(f.size)}</div>`; container.appendChild(r); });
-    }
-
-    function renderCounter(){ if(!state.active){ renderOffersList(ui.yourCounter, []); return; } const mine=state.vault.filter(v=>state.offers.has(v.id)).map(({id,name,size,type})=>({id,name,size,type})); state.active.yourOffer=mine.map(m=>m.id); renderOffersList(ui.yourCounter, mine); updateTradeHint(); }
-
-    function updateTradeHint(){ if(!state.active){ ui.tradeHint.textContent='No active trade.'; ui.btnAccept.disabled=true; ui.btnCancel.disabled=true; ui.btnFinalize.disabled=true; return; } const a=state.active; const meSel=a.yourOffer&&a.yourOffer.length>0; const themSel=a.theirOffer&&a.theirOffer.length>0; ui.btnAccept.disabled=!(meSel&&themSel); ui.btnCancel.disabled=false; ui.btnFinalize.disabled=!(a.accepted&&a.accepted.me&&a.accepted.them); const text = a.accepted?.me? (a.accepted.them? 'Both accepted. Ready to exchange.' : 'You accepted. Waiting for them…') : 'Select your files and Accept to proceed.'; ui.tradeHint.textContent=text; }
-
-    function openTrade(partnerId,theirOffer,inboxId){ state.active={ id: inboxId||('t-'+Math.random().toString(36).slice(2,10)), partnerId, theirOffer, yourOffer:[], accepted:{me:false,them:false}, received:{}, sent:{} }; renderOffersList(ui.theirOffer,theirOffer); renderCounter(); ui.btnAccept.disabled=true; ui.btnFinalize.disabled=true; ui.btnCancel.disabled=false; }
-
-    // Copy ID
-    ui.copyId.onclick=async()=>{ await navigator.clipboard.writeText(state.myId); ui.copyId.textContent='Copied'; setTimeout(()=>ui.copyId.textContent='Copy',1200); toast('ID copied'); };
-
-    // Uploads
-    ui.drop.addEventListener('dragover', e=>{e.preventDefault(); ui.drop.style.borderColor='rgba(255,255,255,.35)'});
-    ui.drop.addEventListener('dragleave', e=>{ui.drop.style.borderColor='var(--stroke)'});
-    ui.drop.addEventListener('drop', e=>{e.preventDefault(); ui.drop.style.borderColor='var(--stroke)'; handleFiles(e.dataTransfer.files)});
-    ui.input.onchange=()=> handleFiles(ui.input.files);
-
-    async function handleFiles(fileList){ const files=Array.from(fileList||[]); for(const f of files){ if(f.size>MAX_FILE_BYTES){ toast(`${f.name}: too large (>${fmtBytes(MAX_FILE_BYTES)})`); continue; } const buf=await f.arrayBuffer(); const rec={ id: crypto.randomUUID(), name:f.name, size:f.size, type:f.type||'application/octet-stream', ts:Date.now(), data:buf }; await idbPut(rec); state.vault.push({id:rec.id,name:rec.name,size:rec.size,type:rec.type,ts:rec.ts}); } renderVault(); renderCounter(); }
-
-    // PeerJS — use cloud by omitting host/port/path (avoids the old peerjs.com/myapp pitfall)
-    async function initPeer(){ state.myId = randId(); ui.myId.textContent=state.myId;
-      state.peer = new Peer(state.myId, { debug:2, config:{ iceServers:[ {urls:'stun:stun.l.google.com:19302'}, {urls:'stun:stun.services.mozilla.com'} ] } });
+    // PeerJS
+    function setupPeer(){ state.myId = genId(); ui.myId.textContent = state.myId; state.peer = new Peer(state.myId, { debug:2, config:{ iceServers:[ {urls:'stun:stun.l.google.com:19302'}, {urls:'stun:stun.services.mozilla.com'} ] } });
       state.peer.on('open', ()=>{ ui.statusText.textContent='Ready'; });
-      state.peer.on('error', err=>{ ui.statusText.textContent='Error: '+err.type; ui.statusDot.classList.remove('good'); toast('Peer error: '+err.type); console.error(err); });
-      state.peer.on('disconnected', ()=>{ ui.statusText.textContent='Disconnected'; ui.statusDot.classList.remove('good'); document.body.classList.remove('connected'); ui.btnOffer.disabled=true; ui.btnDisconnect.disabled=true; });
       state.peer.on('connection', bindConn);
+      state.peer.on('disconnected', ()=>{ setDisconnected('Disconnected'); });
+      state.peer.on('error', e=>{ console.error(e); toast('Peer error: '+e.type); setDisconnected('Error'); });
     }
+    function genId(){ const b=new Uint8Array(6); crypto.getRandomValues(b); return 'ft-'+Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join(''); }
 
-    function bindConn(conn){ state.conn = conn; ui.statusText.textContent='Connected to '+conn.peer; ui.statusDot.classList.add('good'); document.body.classList.add('connected'); ui.btnOffer.disabled=false; ui.btnDisconnect.disabled=false; conn.on('open',()=>{ toast('Connected'); sendJson({type:'hello', id: state.myId, vault: state.vault.map(({id,name,size,type})=>({id,name,size,type}))}); }); conn.on('data', onData); conn.on('close', ()=>{ toast('Peer closed'); ui.statusText.textContent='Peer closed'; ui.statusDot.classList.remove('good'); document.body.classList.remove('connected'); ui.btnOffer.disabled=true; }); conn.on('error', e=>{ console.error('conn error',e); ui.statusText.textContent='Conn error'; ui.statusDot.classList.remove('good'); document.body.classList.remove('connected'); }); }
+    function bindConn(conn){ state.conn = conn; conn.on('open', ()=>{ ui.statusText.textContent='Connected to '+conn.peer; ui.statusDot.classList.add('good'); ui.btnDisconnect.disabled=false; enableTrading(true); sendJson({type:'hello'}); sendJson({type:'trade_counter_set', offer: buildMyOfferMeta()}); });
+      conn.on('data', onData); conn.on('close', ()=>setDisconnected('Peer closed')); conn.on('error', e=>{ console.error('conn error',e); setDisconnected('Conn error'); }); }
 
-    function connectTo(id){ if(!state.peer){ toast('Peer not ready'); return; } const conn = state.peer.connect(id, {reliable:true}); bindConn(conn); }
+    function setDisconnected(text){ ui.statusText.textContent=text; ui.statusDot.classList.remove('good'); ui.btnDisconnect.disabled=true; enableTrading(false); state.accepted={me:false,them:false}; state.confirmed={me:false,them:false}; }
+
+    function connectTo(id){ if(!state.peer){ toast('Peer not ready'); return; } bindConn(state.peer.connect(id,{reliable:true})); }
     function sendJson(obj){ if(state.conn && state.conn.open){ state.conn.send(JSON.stringify(obj)); } }
 
     // Protocol
-    async function onData(payload){ if(payload instanceof ArrayBuffer || payload instanceof Blob){ await handleBinary(payload); return; } let msg=payload; if(typeof payload==='string'){ try{ msg=JSON.parse(payload); }catch{ return; } }
+    async function onData(payload){ if(payload instanceof ArrayBuffer || payload instanceof Blob){ await onChunk(payload); return; } let msg=payload; if(typeof payload==='string'){ try{ msg=JSON.parse(payload); }catch{ return; } }
       switch(msg.type){
         case 'hello': break;
-        case 'trade_request': { const item={ id: msg.tradeId, partnerId: state.conn.peer, offer: msg.offer }; state.inbox.unshift(item); renderInbox(); toast('Incoming trade offer'); break; }
-        case 'trade_accept': { if(!state.active) return; state.active.accepted.them=true; updateTradeHint(); break; }
-        case 'trade_cancel': { if(!state.active) return; state.active=null; resetTradeUI(); toast('Trade cancelled by partner'); break; }
-        case 'trade_counter_set': { if(!state.active) return; state.active.theirOffer=msg.offer; renderOffersList(ui.theirOffer,msg.offer); updateTradeHint(); break; }
-        case 'trade_finalize': { if(!state.active) return; state.active.accepted.them=true; updateTradeHint(); if(state.active.accepted.me && state.active.accepted.them){ beginExchange(); } break; }
-        case 'request_files': { if(!state.active) return; const ids=msg.ids||[]; for(const id of ids){ const rec=await idbGet(id); if(!rec){console.warn('missing',id); continue;} await sendFile(rec); } break; }
-        case 'file_start': { if(!state.active) return; state.currentRxId = msg.id; state.active.received[msg.id] = { meta: msg, chunks:[], received:0, total: msg.size }; break; }
-        case 'file_end': { if(!state.active) return; const r=state.active.received[msg.id]; if(!r) return; const blob=new Blob(r.chunks,{type:r.meta.type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=r.meta.name; a.textContent=`Download ${r.meta.name} (${fmtBytes(r.meta.size)})`; const row=document.createElement('div'); row.className='minirow'; row.appendChild(a); const s=document.createElement('div'); s.style.textAlign='right'; s.textContent='Received'; row.appendChild(s); ui.downloads.appendChild(row); setTimeout(()=>URL.revokeObjectURL(a.href), 5*60*1000); state.currentRxId=null; updateIncomingProgress(); break; }
+        case 'trade_counter_set': { state.theirOffer = msg.offer||[]; // reset flags because offer changed
+          state.accepted.them=false; state.confirmed.them=false; renderSlots(); break; }
+        case 'trade_accept': { state.accepted.them = msg.accepted===true; refreshStage(); break; }
+        case 'trade_confirm': { state.confirmed.them = msg.confirmed===true; refreshStage(); if(state.confirmed.them && state.confirmed.me){ beginExchange(); } break; }
+        case 'request_files': { const ids=msg.ids||[]; for(const id of ids){ const rec=await idbGet(id); if(!rec){ console.warn('missing rec',id); continue; } await sendFile(rec); } break; }
+        case 'file_start': { state.rx = { id: msg.id, total: msg.size, done:0, chunks:[] }; break; }
+        case 'file_end': { const b=new Blob(state.rx.chunks,{type:msg.type}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=msg.name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 5*60*1000); state.rx={id:null,total:0,done:0,chunks:[]}; ui.progress.style.width='0%'; toast('Received '+msg.name); break; }
       }
     }
 
-    async function handleBinary(buf){ if(!(buf instanceof ArrayBuffer)) buf = await buf.arrayBuffer(); if(!state.active||!state.currentRxId) return; const r=state.active.received[state.currentRxId]; if(!r) return; r.chunks.push(buf); r.received += buf.byteLength; const pct = r.total? Math.min(100, Math.round((r.received/r.total)*100)) : 0; ui.inProg.style.width=pct+'%'; }
+    async function onChunk(buf){ if(!(buf instanceof ArrayBuffer)) buf = await buf.arrayBuffer(); if(!state.rx||!state.rx.id) return; state.rx.chunks.push(buf); state.rx.done += buf.byteLength; const pct = state.rx.total? Math.min(100, Math.round((state.rx.done/state.rx.total)*100)) : 0; ui.progress.style.width=pct+'%'; }
 
-    function buildMyOfferMeta(){ return state.vault.filter(v=>state.offers.has(v.id)).map(({id,name,size,type})=>({id,name,size,type})); }
+    async function sendFile(rec){ sendJson({type:'file_start', id: rec.id, name: rec.name, size: rec.size, type: rec.type}); const data = rec.data || (await idbGet(rec.id))?.data; if(!data){ console.warn('no data',rec.id); return; } let sent=0; for(let off=0; off<data.byteLength; off+=CHUNK){ const chunk=data.slice(off, Math.min(off+CHUNK, data.byteLength)); state.conn.send(chunk); sent+=chunk.byteLength; const pct = rec.size? Math.round((sent/rec.size)*100) : 0; ui.progress.style.width=pct+'%'; await new Promise(r=>setTimeout(r,0)); } sendJson({type:'file_end', id: rec.id, name: rec.name, type: rec.type}); }
 
-    ui.btnOffer.onclick = ()=>{ if(!state.conn||!state.conn.open){ toast('Connect to a partner first'); return; } sendJson({type:'trade_request', tradeId: 't-'+Math.random().toString(36).slice(2,10), offer: buildMyOfferMeta()}); openTrade(state.conn.peer, [], 'local-'+Math.random().toString(36).slice(2,6)); };
+    function beginExchange(){ ui.stageTxt.textContent='Exchanging files…'; ui.btnReady.disabled=true; ui.btnConfirm.disabled=true; // request their files; they request ours
+      const want = (state.theirOffer||[]).map(f=>f.id); sendJson({type:'request_files', ids: want}); }
 
-    ui.btnAccept.onclick = ()=>{ if(!state.active) return; state.active.accepted.me=true; updateTradeHint(); const mine=buildMyOfferMeta(); sendJson({type:'trade_counter_set', offer: mine}); sendJson({type:'trade_accept'}); };
-    ui.btnFinalize.onclick = ()=>{ if(!state.active) return; if(!(state.active.accepted.me)) return; sendJson({type:'trade_finalize'}); if(state.active.accepted.them){ beginExchange(); } else { updateTradeHint(); } };
-    ui.btnCancel.onclick = ()=>{ if(!state.active) return; sendJson({type:'trade_cancel'}); state.active=null; resetTradeUI(); };
+    // Enable/disable trade UI by connection
+    function enableTrading(yes){ [ui.board, ui.vault].forEach(sec=>{ if(yes){ sec.classList.remove('dim'); } else { sec.classList.add('dim'); } }); ui.btnCancel.disabled = !yes; ui.btnReady.disabled = !yes; }
 
-    function resetTradeUI(){ ui.theirOffer.innerHTML=''; ui.yourCounter.innerHTML=''; ui.downloads.innerHTML=''; ui.theirOfferEmpty.style.display='block'; ui.yourCounterEmpty.style.display='block'; ui.inProg.style.width='0%'; ui.outProg.style.width='0%'; updateTradeHint(); }
-
-    function beginExchange(){ if(!state.active) return; ui.btnFinalize.disabled=true; ui.btnAccept.disabled=true; ui.tradeHint.textContent='Exchanging files…'; const want=(state.active.theirOffer||[]).map(f=>f.id); sendJson({type:'request_files', ids: want}); }
-
-    async function sendFile(rec){ sendJson({type:'file_start', id: rec.id, name: rec.name, size: rec.size, type: rec.type}); const total=rec.data?rec.data.byteLength:0; const buf=rec.data||(await idbGet(rec.id))?.data; if(!buf){ console.warn('No data for',rec.id); return; } let sent=0; for(let off=0; off<buf.byteLength; off+=CHUNK){ const chunk=buf.slice(off, Math.min(off+CHUNK, buf.byteLength)); state.conn.send(chunk); sent+=chunk.byteLength; updateOutgoingProgress(sent,total); await new Promise(r=>setTimeout(r,0)); } sendJson({type:'file_end', id: rec.id}); updateOutgoingProgress(total,total); }
-
-    function updateIncomingProgress(){ if(!state.active) return; const want=(state.active.theirOffer||[]).length; const have=ui.downloads.querySelectorAll('.minirow').length; const pct = want? Math.min(100, Math.round((have/want)*100)) : 0; ui.inProg.style.width=pct+'%'; if(pct===100){ ui.tradeHint.textContent='Trade complete. Downloads ready below.'; toast('Trade complete'); } }
-    function updateOutgoingProgress(done,total){ const pct = total? Math.round((done/total)*100) : 0; ui.outProg.style.width=pct+'%'; }
-
-    // Connect / disconnect controls
-    ui.btnConnect.onclick = ()=>{ const id=ui.partnerId.value.trim(); if(!id){ toast('Enter partner ID'); return; } connectTo(id); };
-    ui.btnDisconnect.onclick = ()=>{ if(state.conn){ try{ state.conn.close(); }catch{} } };
+    // Controls
+    ui.copyId.addEventListener('click', async()=>{ await navigator.clipboard.writeText(state.myId||''); toast('ID copied'); });
+    ui.btnConnect.addEventListener('click',()=>{ const id=ui.partnerId.value.trim(); if(!id){ toast('Enter partner ID'); return; } connectTo(id); });
+    ui.btnDisconnect.addEventListener('click',()=>{ try{ state.conn && state.conn.close(); }catch{} });
+    ui.btnReady.addEventListener('click',()=>{ if(!(state.offers.length>0 && state.theirOffer.length>0)) return; state.accepted.me = true; state.confirmed.me=false; sendJson({type:'trade_accept', accepted:true}); refreshStage(); });
+    ui.btnConfirm.addEventListener('click',()=>{ if(!(state.accepted.me && state.accepted.them)) return; state.confirmed.me = true; sendJson({type:'trade_confirm', confirmed:true}); refreshStage(); if(state.confirmed.them){ beginExchange(); } });
+    ui.btnCancel.addEventListener('click',()=>{ state.accepted={me:false,them:false}; state.confirmed={me:false,them:false}; refreshStage(); toast('Trade cancelled'); });
 
     // Boot
-    (async function(){ state.idb = await idbOpen(); const recs = await idbAll(); state.vault = recs.map(({id,name,size,type,ts})=>({id,name,size,type,ts})); renderVault(); renderInbox(); resetTradeUI(); await initPeer(); ui.statusDot.classList.toggle('good', !!state.peer); })();
+    (async function(){ state.idb = await idbOpen(); const recs=await idbAll(); state.vault = recs.map(({id,name,size,type,ts})=>({id,name,size,type,ts})); renderVault(); renderSlots(); enableTrading(false); setupPeer(); })();
   </script>
 </body>
 </html>
